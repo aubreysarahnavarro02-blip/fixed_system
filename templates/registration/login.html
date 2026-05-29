@@ -1,0 +1,263 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Barangay San Jose Registry</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0b1f3a;
+      --navy-mid: #1a3560;
+      --gold: #c8a94f;
+      --gold-light: #e2c97e;
+      --red-ph: #ce1126;
+      --blue-ph: #0038a8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      background: var(--navy);
+      position: relative;
+      overflow: hidden;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(200,169,79,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(26,53,96,0.6) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8a94f' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .login-split {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Left Panel */
+    .left-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 60px;
+      max-width: 520px;
+    }
+    .ph-stripe {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 28px;
+    }
+    .ph-stripe span {
+      display: block;
+      height: 5px;
+      border-radius: 3px;
+    }
+    .seal {
+      width: 80px; height: 80px;
+      background: linear-gradient(135deg, var(--gold), #8a6820);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 34px;
+      margin-bottom: 24px;
+      box-shadow: 0 0 40px rgba(200,169,79,0.3);
+    }
+    .left-panel h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      color: white;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+    .left-panel h1 span { color: var(--gold-light); }
+    .left-panel p {
+      color: rgba(255,255,255,0.5);
+      font-size: 14px;
+      line-height: 1.7;
+      max-width: 360px;
+      font-style: italic;
+    }
+    .info-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 32px;
+    }
+    .pill {
+      padding: 6px 14px;
+      border: 1px solid rgba(200,169,79,0.3);
+      border-radius: 20px;
+      color: rgba(200,169,79,0.7);
+      font-size: 11.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Right Panel */
+    .right-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      padding: 40px;
+    }
+    .login-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .login-card h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+    .login-card .sub {
+      color: #6b7a94;
+      font-size: 13px;
+      margin-bottom: 28px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7a94;
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute;
+      left: 12px; top: 50%; transform: translateY(-50%);
+      color: #aab4c5;
+      font-size: 14px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 12px 10px 36px;
+      border: 1.5px solid #e0e5ef;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--navy);
+      transition: border-color 0.2s;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--navy-mid);
+      box-shadow: 0 0 0 3px rgba(26,53,96,0.1);
+    }
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-login:hover { background: var(--navy-mid); }
+    .error-msg {
+      background: #fde8e8;
+      color: #a61c1c;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      border-left: 3px solid #e74c3c;
+    }
+    .divider {
+      text-align: center;
+      color: #aab4c5;
+      font-size: 12px;
+      margin: 20px 0 0;
+    }
+
+    @media (max-width: 768px) {
+      .left-panel { display: none; }
+      .login-split { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+<div class="login-split">
+  <div class="left-panel">
+    <div class="ph-stripe">
+      <span style="width:40px; background:#0038a8;"></span>
+      <span style="width:40px; background:#ce1126;"></span>
+      <span style="width:20px; background:#fcd116;"></span>
+    </div>
+    <div class="seal">🏛️</div>
+    <h1>Barangay<br><span>Official Attendance</span><br>and Session Registry</h1>
+    <p>"Promoting Transparency and Accountability in Barangay Attendance and Service."</p>
+    <div class="info-pills">
+      <div class="pill"><i class="fas fa-map-marker-alt"></i> Brgy. San Jose, Surigao City</div>
+      <div class="pill"><i class="fas fa-shield-halved"></i> Secure Access</div>
+      <div class="pill"><i class="fas fa-users"></i> Citizen Registry</div>
+      <div class="pill"><i class="fas fa-landmark"></i> Session Records</div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="login-card">
+      <h2>Welcome Back</h2>
+      <p class="sub">Sign in to access the Barangay Registry System</p>
+
+      {% if form.errors %}
+      <div class="error-msg">
+        <i class="fas fa-circle-xmark"></i>
+        Invalid username or password. Please try again.
+      </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="form-group">
+          <label class="form-label">USERNAME</label>
+          <div class="input-wrap">
+            <i class="fas fa-user input-icon"></i>
+            <input type="text" name="username" class="form-control" placeholder="Enter username" required autofocus>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">PASSWORD</label>
+          <div class="input-wrap">
+            <i class="fas fa-lock input-icon"></i>
+            <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-login">
+          <i class="fas fa-right-to-bracket"></i> Sign In
+        </button>
+      </form>
+      <div class="divider">Brgy. San Jose Attendance Management System &bull; Surigao City</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

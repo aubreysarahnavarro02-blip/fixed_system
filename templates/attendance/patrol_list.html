@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Patrol Schedule — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Patrol Schedules{% endblock %}
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-size:14px; color:#888;"><i class="fas fa-person-walking"></i> All patrol assignments</span>
+    {% if user.profile.role in 'punong_barangay,admin,secretary' %}
+    <a href="{% url 'patrol_create' %}" class="btn btn-gold"><i class="fas fa-plus"></i> Schedule Patrol</a>
+    {% endif %}
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Date</th><th>Area / Location</th><th>Time</th><th>Tanod Members</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        {% for p in page_obj %}
+        <tr>
+          <td style="font-weight:500;">{{ p.date|date:"M d, Y" }}</td>
+          <td>{{ p.area }}</td>
+          <td style="font-size:12px; color:#888;">{{ p.start_time }} – {{ p.end_time }}</td>
+          <td style="font-size:12px;">
+            {% for m in p.tanod_members.all %}{{ m.get_full_name }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">—</span>{% endfor %}
+          </td>
+          <td><span class="badge-status {% if p.status == 'completed' %}status-completed{% elif p.status == 'ongoing' %}status-ongoing{% elif p.status == 'cancelled' %}status-cancelled{% else %}status-scheduled{% endif %}">{{ p.get_status_display }}</span></td>
+          <td style="font-size:12px; color:#888;">{{ p.notes|truncatechars:40|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center; padding:40px; color:#888;"><i class="fas fa-person-walking"></i> No patrol schedules yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

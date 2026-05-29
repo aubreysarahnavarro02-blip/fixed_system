@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Tanod Dashboard — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Barangay Tanod — Security Dashboard{% endblock %}
+{% block extra_css %}<style>.alert-btn { display:flex; align-items:center; justify-content:center; gap:10px; padding:18px; border-radius:12px; background:linear-gradient(135deg,#ef4444,#b91c1c); color:white; font-size:16px; font-weight:700; text-decoration:none; cursor:pointer; border:none; width:100%; margin-bottom:16px; }</style>{% endblock %}
+{% block content %}
+<!-- Alert Button -->
+<div class="card mb-24" style="background:linear-gradient(135deg,#0b1f3a,#1a3a6b); color:white;">
+  <div class="card-body" style="padding:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div>
+        <div style="font-size:22px; font-weight:700;"><i class="fas fa-shield-alt"></i> Tanod Security Post</div>
+        <div style="font-size:13px; opacity:.8; margin-top:4px;">{{ today|date:"l, F d, Y" }} — Stay alert and report immediately.</div>
+      </div>
+      <a href="{% url 'incident_create' %}" style="background:#ef4444; color:white; padding:14px 28px; border-radius:10px; text-decoration:none; font-weight:700; font-size:15px;">
+        <i class="fas fa-bell"></i> REPORT INCIDENT
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="stats-grid mb-24">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#fee2e2; color:#ef4444;"><i class="fas fa-triangle-exclamation"></i></div>
+    <div><div class="stat-value">{{ open_incidents_count }}</div><div class="stat-label">Open Incidents</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-person-walking"></i></div>
+    <div><div class="stat-value">{{ today_patrols }}</div><div class="stat-label">Today's Patrols</div></div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-person-walking"></i> My Patrol Schedule Today</span>
+      <a href="{% url 'patrol_list' %}" class="btn btn-sm btn-outline">All Patrols</a>
+    </div>
+    <div class="card-body">
+      {% for p in my_patrols %}
+      <div style="padding:10px 0; border-bottom:1px solid #eef0f4;">
+        <div style="font-weight:500;">{{ p.area }}</div>
+        <div style="font-size:12px; color:#888;">{{ p.start_time }} – {{ p.end_time }} &nbsp;|&nbsp; <span class="badge-status status-{{ p.status }}">{{ p.get_status_display }}</span></div>
+      </div>
+      {% empty %}
+      <p style="text-align:center; color:#888; padding:20px 0; font-size:13px;">No patrols scheduled for today.</p>
+      {% endfor %}
+      <a href="{% url 'patrol_list' %}" class="btn btn-outline" style="width:100%; margin-top:12px;"><i class="fas fa-calendar"></i> View All Schedules</a>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-triangle-exclamation"></i> Recent Incidents</span>
+      <a href="{% url 'incident_list' %}" class="btn btn-sm btn-outline">All</a>
+    </div>
+    <div class="card-body">
+      {% for inc in recent_incidents %}
+      <div style="padding:8px 0; border-bottom:1px solid #eef0f4;">
+        <div style="display:flex; justify-content:space-between; align-items:start;">
+          <div>
+            <span style="font-size:11px; padding:2px 7px; border-radius:10px; font-weight:600; background:{% if inc.severity == 'critical' %}#fce7f3{% elif inc.severity == 'high' %}#fee2e2{% elif inc.severity == 'moderate' %}#fef9c3{% else %}#dcfce7{% endif %}; color:{% if inc.severity == 'critical' %}#9d174d{% elif inc.severity == 'high' %}#991b1b{% elif inc.severity == 'moderate' %}#854d0e{% else %}#166534{% endif %};">{{ inc.get_severity_display }}</span>
+            <div style="font-size:13px; margin-top:4px;">{{ inc.title|truncatechars:35 }}</div>
+          </div>
+          <a href="{% url 'incident_detail' inc.pk %}" class="btn btn-sm btn-outline">View</a>
+        </div>
+      </div>
+      {% empty %}
+      <p style="text-align:center; color:#888; padding:20px 0; font-size:13px;"><i class="fas fa-shield-check"></i> No open incidents.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Daily Log — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Daily Activity Log — {{ today|date:"F d, Y" }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:680px; margin:0 auto;">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-clock"></i> {% if existing %}Update{% else %}Submit{% endif %} Daily Log</span>
+    <span style="font-size:13px; color:#888;">{{ today|date:"l, F d, Y" }}</span>
+  </div>
+  <div class="card-body">
+    {% if existing %}
+    <div style="padding:10px 14px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; margin-bottom:16px; font-size:13px; color:#166534;">
+      <i class="fas fa-check-circle"></i> You already have a log for today. You can update it below.
+    </div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Time In</label>
+          <input name="time_in" type="time" class="form-control" value="{{ existing.time_in|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time Out</label>
+          <input name="time_out" type="time" class="form-control" value="{{ existing.time_out|default:'' }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Activities Done Today *</label>
+        <textarea name="activities" class="form-control" rows="7" required
+          placeholder="List all tasks and activities you performed today:
+• Cleaned the barangay hall
+• Distributed leaflets in Purok 3
+• Restocked office supplies
+• Assisted during session setup">{{ existing.activities|default:'' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes / Remarks</label>
+        <textarea name="notes" class="form-control" rows="3"
+          placeholder="Problems encountered, things to follow up, etc.">{{ existing.notes|default:'' }}</textarea>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button type="submit" class="btn btn-gold">
+          <i class="fas fa-save"></i> {% if existing %}Update Log{% else %}Submit Log{% endif %}
+        </button>
+        <a href="{% url 'utility_dashboard' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

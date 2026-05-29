@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Treasury Dashboard — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Treasury — Financial Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+  .fin-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .fin-grid-2 { display:grid; grid-template-columns:2fr 1fr; gap:16px; }
+  .fin-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid #eef0f4; font-size:13px; }
+  .fin-row:last-child { border-bottom:none; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="stats-grid mb-24">
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-arrow-up"></i></div>
+    <div>
+      <div class="stat-value">₱{{ rev_total|floatformat:2 }}</div>
+      <div class="stat-label">Monthly Revenue</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#fee2e2; color:#ef4444;"><i class="fas fa-arrow-down"></i></div>
+    <div>
+      <div class="stat-value">₱{{ exp_total|floatformat:2 }}</div>
+      <div class="stat-label">Monthly Expense</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon navy"><i class="fas fa-scale-balanced"></i></div>
+    <div>
+      <div class="stat-value">₱{{ balance|floatformat:2 }}</div>
+      <div class="stat-label">Net Balance</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon gold"><i class="fas fa-clock"></i></div>
+    <div>
+      <div class="stat-value">{{ pending_disbursements }}</div>
+      <div class="stat-label">Pending Disbursements</div>
+    </div>
+  </div>
+</div>
+
+<div class="fin-grid-2 mb-24">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-receipt"></i> Recent Transactions</span>
+      <a href="{% url 'financial_list' %}" class="btn btn-sm btn-outline">View All</a>
+    </div>
+    <div class="card-body">
+      {% for r in recent_records %}
+      <div class="fin-row">
+        <div>
+          <span style="font-size:11px; padding:2px 7px; border-radius:10px; background:{% if r.type == 'revenue' %}#d1fae5{% else %}#fee2e2{% endif %}; color:{% if r.type == 'revenue' %}#065f46{% else %}#991b1b{% endif %};">{{ r.get_type_display }}</span>
+          <span style="margin-left:8px; font-size:13px;">{{ r.description|truncatechars:35 }}</span>
+        </div>
+        <strong style="color:{% if r.type == 'revenue' %}#10b981{% else %}#ef4444{% endif %};">₱{{ r.amount|floatformat:2 }}</strong>
+      </div>
+      {% empty %}
+      <p style="text-align:center; color:#888; padding:20px 0;">No transactions yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-wallet"></i> Budget Overview</span></div>
+    <div class="card-body">
+      {% for b in budget_allocations %}
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+          <span>{{ b.fund }}</span>
+          <span>₱{{ b.remaining|floatformat:0 }} left</span>
+        </div>
+        <div style="background:#eef0f4; border-radius:6px; height:7px; overflow:hidden;">
+          <div style="height:7px; border-radius:6px; background:#1a3a6b; width:{% widthratio b.used_amount b.allocated_amount 100 %}%;"></div>
+        </div>
+      </div>
+      {% empty %}
+      <p style="text-align:center; color:#888; font-size:13px;">No budget allocations for {{ today.year }}.</p>
+      {% endfor %}
+      <a href="{% url 'budget_create' %}" class="btn btn-outline" style="width:100%; margin-top:10px; font-size:12px;"><i class="fas fa-plus"></i> Add Allocation</a>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-bolt"></i> Quick Actions</span>
+  </div>
+  <div class="card-body" style="display:flex; gap:12px; flex-wrap:wrap;">
+    <a href="{% url 'financial_create' %}" class="btn btn-gold"><i class="fas fa-plus"></i> Record Transaction</a>
+    <a href="{% url 'financial_list' %}?type=expense&status=pending" class="btn btn-outline"><i class="fas fa-clock"></i> Pending Disbursements</a>
+    <a href="{% url 'budget_list' %}" class="btn btn-outline"><i class="fas fa-wallet"></i> Budget Allocations</a>
+    <a href="{% url 'reports' %}" class="btn btn-outline"><i class="fas fa-file-alt"></i> Generate Report</a>
+  </div>
+</div>
+{% endblock %}

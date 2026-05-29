@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Propose Project — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Propose Project / Program{% endblock %}
+{% block content %}
+<div class="card" style="max-width:780px; margin:0 auto;">
+  <div class="card-header"><span class="card-title"><i class="fas fa-diagram-project"></i> {{ action }} Project</span></div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Project Title *</label>
+        <input name="title" class="form-control" required placeholder="e.g. Road Concreting Phase 2">
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select name="category" class="form-control" required>
+            {% for v,l in category_choices %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Committee In-Charge</label>
+          <input name="committee_in_charge" class="form-control" placeholder="e.g. Infrastructure Committee">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Budget Allocated (₱)</label>
+          <input name="budget_allocated" type="number" step="0.01" class="form-control" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <input name="location" class="form-control" placeholder="Project site location">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Start Date</label>
+          <input name="start_date" type="date" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Date</label>
+          <input name="end_date" type="date" class="form-control">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description *</label>
+        <textarea name="description" class="form-control" rows="5" required placeholder="Describe the project scope, objectives, and expected outcomes..."></textarea>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button type="submit" class="btn btn-gold"><i class="fas fa-diagram-project"></i> Submit Proposal</button>
+        <a href="{% url 'project_list' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

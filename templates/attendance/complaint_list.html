@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Complaints & Cases — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Complaints & Case Management{% endblock %}
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <select name="status" class="form-control" style="max-width:180px;">
+        <option value="">All Status</option>
+        {% for v,l in status_choices %}<option value="{{ v }}" {% if status_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <select name="type" class="form-control" style="max-width:180px;">
+        <option value="">All Types</option>
+        {% for v,l in type_choices %}<option value="{{ v }}" {% if type_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filter</button>
+      <a href="{% url 'complaint_list' %}" class="btn btn-outline">Clear</a>
+      <a href="{% url 'complaint_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-plus"></i> File Case</a>
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Case #</th><th>Type</th><th>Complainant</th><th>Respondent</th><th>Assigned To</th><th>Status</th><th>Date Filed</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for c in page_obj %}
+        <tr>
+          <td style="font-weight:600; font-size:13px;">{{ c.case_number }}</td>
+          <td><span style="font-size:11px; background:#eef0f4; padding:2px 8px; border-radius:10px;">{{ c.get_type_display }}</span></td>
+          <td>{{ c.complainant_name }}</td>
+          <td>{{ c.respondent_name }}</td>
+          <td style="font-size:12px; color:#888;">{{ c.assigned_to.get_full_name|default:"Unassigned" }}</td>
+          <td><span class="badge-status {% if c.status == 'resolved' %}status-completed{% elif c.status in 'dismissed,escalated' %}status-cancelled{% elif c.status == 'filed' %}status-scheduled{% else %}status-ongoing{% endif %}">{{ c.get_status_display }}</span></td>
+          <td style="font-size:12px; color:#888;">{{ c.filed_date|date:"M d, Y" }}</td>
+          <td><a href="{% url 'complaint_detail' c.pk %}" class="btn btn-sm btn-outline">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center; padding:40px; color:#888;"><i class="fas fa-gavel"></i> No complaints on file.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

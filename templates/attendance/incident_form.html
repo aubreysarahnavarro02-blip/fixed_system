@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Report Incident — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Report an Incident{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px; margin:0 auto;">
+  <div class="card-header" style="background:linear-gradient(135deg,#0b1f3a,#1a3a6b); color:white;">
+    <span class="card-title" style="color:white;"><i class="fas fa-triangle-exclamation"></i> {{ action }} Incident Report</span>
+  </div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Incident Type *</label>
+          <select name="type" class="form-control" required>
+            {% for v,l in type_choices %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Severity Level *</label>
+          <select name="severity" class="form-control" required>
+            {% for v,l in severity_choices %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Incident Title *</label>
+        <input name="title" class="form-control" required placeholder="Brief title / headline of incident">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location *</label>
+        <input name="location" class="form-control" required placeholder="Exact location where incident occurred">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date & Time of Incident *</label>
+        <input name="incident_date" type="datetime-local" class="form-control" value="{{ now }}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description *</label>
+        <textarea name="description" class="form-control" rows="5" required placeholder="Detailed account of what happened..."></textarea>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button type="submit" class="btn btn-gold"><i class="fas fa-paper-plane"></i> Submit Report</button>
+        <a href="{% url 'incident_list' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

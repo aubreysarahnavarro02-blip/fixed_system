@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Incident Reports — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Incident Reports{% endblock %}
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <select name="type" class="form-control" style="max-width:180px;">
+        <option value="">All Types</option>
+        {% for v,l in type_choices %}<option value="{{ v }}" {% if type_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <select name="resolved" class="form-control" style="max-width:160px;">
+        <option value="">All</option>
+        <option value="0" {% if request.GET.resolved == '0' %}selected{% endif %}>Open</option>
+        <option value="1" {% if request.GET.resolved == '1' %}selected{% endif %}>Resolved</option>
+      </select>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filter</button>
+      <a href="{% url 'incident_list' %}" class="btn btn-outline">Clear</a>
+      <a href="{% url 'incident_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-plus"></i> Report Incident</a>
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Report #</th><th>Type</th><th>Severity</th><th>Title</th><th>Location</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for inc in page_obj %}
+        <tr>
+          <td style="font-weight:600; font-size:12px;">{{ inc.report_number }}</td>
+          <td style="font-size:12px;"><span style="background:#eef0f4; padding:2px 7px; border-radius:10px;">{{ inc.get_type_display }}</span></td>
+          <td><span style="font-size:11px; padding:2px 8px; border-radius:10px; font-weight:600; background:{% if inc.severity == 'critical' %}#fce7f3{% elif inc.severity == 'high' %}#fee2e2{% elif inc.severity == 'moderate' %}#fef9c3{% else %}#dcfce7{% endif %}; color:{% if inc.severity == 'critical' %}#9d174d{% elif inc.severity == 'high' %}#991b1b{% elif inc.severity == 'moderate' %}#854d0e{% else %}#166534{% endif %};">{{ inc.get_severity_display }}</span></td>
+          <td style="font-weight:500;">{{ inc.title|truncatechars:45 }}</td>
+          <td style="font-size:12px; color:#888;">{{ inc.location|truncatechars:30 }}</td>
+          <td style="font-size:12px; color:#888;">{{ inc.incident_date|date:"M d, Y H:i" }}</td>
+          <td>{% if inc.is_resolved %}<span class="badge-status status-completed">Resolved</span>{% else %}<span class="badge-status status-scheduled">Open</span>{% endif %}</td>
+          <td><a href="{% url 'incident_detail' inc.pk %}" class="btn btn-sm btn-outline">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center; padding:40px; color:#888;"><i class="fas fa-shield-check"></i> No incidents found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Review Ordinance — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Review Ordinance / Resolution{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px; margin:0 auto;">
+  <div class="card-header"><span class="card-title"><i class="fas fa-stamp"></i> {{ ord_obj.get_type_display }} No. {{ ord_obj.number }}</span></div>
+  <div class="card-body">
+    <p style="font-size:14px; margin-bottom:16px;"><strong>{{ ord_obj.title }}</strong></p>
+    <div style="background:#f9fafb; border:1px solid #eef0f4; border-radius:8px; padding:16px; font-size:13px; max-height:280px; overflow-y:auto; white-space:pre-wrap; margin-bottom:20px;">{{ ord_obj.content }}</div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Captain's Notes / Remarks</label>
+        <textarea name="notes" class="form-control" rows="3" placeholder="Optional remarks...">{{ ord_obj.approval_notes }}</textarea>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
+        {% if ord_obj.status in 'draft,pending_approval' %}
+        <button name="action" value="approve" class="btn btn-gold"><i class="fas fa-check"></i> Approve</button>
+        {% endif %}
+        {% if ord_obj.status == 'approved' %}
+        <button name="action" value="enact" class="btn btn-primary"><i class="fas fa-gavel"></i> Enact into Law</button>
+        {% endif %}
+        <button name="action" value="reject" class="btn" style="background:#ef4444; color:white;"><i class="fas fa-times"></i> Reject</button>
+        <a href="{% url 'ordinance_list' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

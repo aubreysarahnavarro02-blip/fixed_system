@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}{{ citizen.full_name }} — Brgy. San Jose{% endblock %}
+{% block page_title %}Citizen Profile{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-12 align-center mb-16">
+  <a href="{% url 'citizen_list' %}" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back</a>
+  {% if request.user.profile.role in 'admin,secretary,kagawad,staff' %}
+  <a href="{% url 'citizen_edit' citizen.pk %}" class="btn btn btn-primary btn-sm"><i class="fas fa-pen"></i> Edit</a>
+  {% endif %}
+</div>
+
+<div style="display:grid; grid-template-columns:300px 1fr; gap:20px;">
+  <!-- Profile Card -->
+  <div>
+    <div class="card mb-16">
+      <div class="card-body" style="text-align:center; padding:28px 20px;">
+        <div style="width:80px; height:80px; background:linear-gradient(135deg, #0b1f3a, #1a3560); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; color:white; font-weight:700; margin:0 auto 16px; font-family:'Playfair Display',serif;">
+          {{ citizen.first_name.0 }}{{ citizen.last_name.0 }}
+        </div>
+        <h2 style="font-family:'Playfair Display',serif; font-size:18px; color:#0b1f3a; margin-bottom:4px;">{{ citizen.full_name }}</h2>
+        <div style="font-size:12.5px; color:#9aa3b5; margin-bottom:12px;">{{ citizen.get_category_display }}</div>
+        <div style="font-size:28px; font-weight:700; color:#0b1f3a; font-family:'Playfair Display',serif;">{{ attendance_rate }}%</div>
+        <div style="font-size:11.5px; color:#9aa3b5;">Attendance Rate</div>
+        <div style="height:8px; background:#eef0f4; border-radius:4px; margin-top:8px;">
+          <div style="height:8px; border-radius:4px; width:{{ attendance_rate }}%;
+            background:{% if attendance_rate >= 75 %}#2ecc71{% elif attendance_rate >= 50 %}#f39c12{% else %}#e74c3c{% endif %};"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Details</span></div>
+      <div class="card-body">
+        <div style="font-size:13px; line-height:2.2; color:#2a3548;">
+          <div><span class="text-muted" style="font-size:11px;">GENDER</span><br>{{ citizen.get_gender_display }}</div>
+          {% if citizen.age %}<div><span class="text-muted" style="font-size:11px;">AGE</span><br>{{ citizen.age }} years old</div>{% endif %}
+          <div><span class="text-muted" style="font-size:11px;">CIVIL STATUS</span><br>{{ citizen.get_civil_status_display }}</div>
+          {% if citizen.contact_number %}<div><span class="text-muted" style="font-size:11px;">CONTACT</span><br>{{ citizen.contact_number }}</div>{% endif %}
+          {% if citizen.email %}<div><span class="text-muted" style="font-size:11px;">EMAIL</span><br>{{ citizen.email }}</div>{% endif %}
+          {% if citizen.precinct_number %}<div><span class="text-muted" style="font-size:11px;">PRECINCT</span><br>{{ citizen.precinct_number }}</div>{% endif %}
+          <div><span class="text-muted" style="font-size:11px;">ADDRESS</span><br>{{ citizen.address }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attendance History -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Attendance History</span>
+      <span class="text-muted" style="font-size:12px;">Recent 20 records</span>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Session</th>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Time In</th>
+            <th>Time Out</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rec in records %}
+          <tr>
+            <td class="text-muted" style="font-size:12px;">{{ forloop.counter }}</td>
+            <td>
+              <a href="{% url 'session_detail' rec.session.pk %}" style="color:#0b1f3a; text-decoration:none; font-weight:500;">
+                {{ rec.session.title }}
+              </a>
+            </td>
+            <td class="text-muted">{{ rec.session.get_session_type_display }}</td>
+            <td class="text-muted">{{ rec.session.date|date:"M d, Y" }}</td>
+            <td><span class="badge badge-{{ rec.status }}">{{ rec.get_status_display }}</span></td>
+            <td class="text-muted">{{ rec.time_in|time:"g:i A"|default:"—" }}</td>
+            <td class="text-muted">{{ rec.time_out|time:"g:i A"|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" style="text-align:center; padding:24px; color:#9aa3b5;">No attendance records yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

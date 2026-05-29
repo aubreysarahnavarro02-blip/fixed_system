@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Hall — Brgy. San Jose{% endblock %}
+{% block page_title %}{{ action }} Hall / Venue{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-12 mb-16">
+  <a href="{% url 'hall_list' %}" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="card" style="max-width:560px;">
+  <div class="card-header"><span class="card-title">{{ action }} Hall / Venue</span></div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group"><label class="form-label">Hall Name *</label>{{ form.name }}</div>
+      <div class="form-group"><label class="form-label">Location</label>{{ form.location }}</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Capacity</label>{{ form.capacity }}</div>
+        <div class="form-group"><label class="form-label">Status</label>{{ form.status }}</div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label>{{ form.description }}</div>
+      <div class="d-flex gap-12" style="justify-content:flex-end;">
+        <a href="{% url 'hall_list' %}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> {{ action }} Hall</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

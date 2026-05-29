@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Confirm Delete — Brgy. San Jose{% endblock %}
+{% block page_title %}Confirm Deletion{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:480px; margin:0 auto;">
+  <div class="card-header" style="border-left:4px solid #e74c3c;">
+    <span class="card-title" style="color:#e74c3c;"><i class="fas fa-triangle-exclamation"></i> Confirm Deletion</span>
+  </div>
+  <div class="card-body" style="text-align:center; padding:32px;">
+    <div style="font-size:48px; margin-bottom:16px;">🗑️</div>
+    <h3 style="font-family:'Playfair Display',serif; font-size:18px; color:#0b1f3a; margin-bottom:8px;">
+      Delete {{ type }}?
+    </h3>
+    <p style="color:#5a6478; font-size:14px; margin-bottom:24px;">
+      You are about to delete <strong>{{ object }}</strong>.<br>
+      This action <strong>cannot be undone</strong>.
+    </p>
+    <form method="post" class="d-flex gap-12" style="justify-content:center;">
+      {% csrf_token %}
+      <a href="javascript:history.back()" class="btn btn-outline">Cancel</a>
+      <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Yes, Delete</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

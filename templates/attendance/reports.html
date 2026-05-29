@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block title %}Reports — Brgy. San Jose{% endblock %}
+{% block page_title %}Reports & Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+  .report-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+  .top-attendee {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid #eef0f4;
+  }
+  .top-attendee:last-child { border-bottom: none; }
+  .rank-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #0b1f3a; color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .rank-num.gold { background: linear-gradient(135deg, #c8a94f, #a08030); }
+  .rank-num.silver { background: linear-gradient(135deg, #aab4c5, #8090a5); }
+  .rank-num.bronze { background: linear-gradient(135deg, #cd7f32, #9a5f20); }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Bar -->
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <label style="font-size:12px; color:#5a6478; font-weight:600;">DATE RANGE</label>
+      <input type="date" name="date_from" value="{{ request.GET.date_from }}" class="form-control" style="max-width:160px;">
+      <span class="text-muted">to</span>
+      <input type="date" name="date_to" value="{{ request.GET.date_to }}" class="form-control" style="max-width:160px;">
+      <select name="session_type" class="form-control" style="max-width:180px;">
+        <option value="">All Session Types</option>
+        <option value="regular">Regular Session</option>
+        <option value="special">Special Session</option>
+        <option value="emergency">Emergency Session</option>
+        <option value="committee">Committee Meeting</option>
+        <option value="assembly">Barangay Assembly</option>
+        <option value="seminar">Seminar / Training</option>
+        <option value="livelihood">Livelihood Program</option>
+        <option value="health">Health Program</option>
+      </select>
+      <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Apply</button>
+      <a href="{% url 'reports' %}" class="btn btn-outline">Reset</a>
+    </form>
+  </div>
+</div>
+
+<div class="report-grid">
+  <!-- Left: Chart + Table -->
+  <div>
+    <div class="card mb-16">
+      <div class="card-header">
+        <span class="card-title">Sessions by Type</span>
+      </div>
+      <div class="card-body">
+        <div style="height:220px; position:relative;">
+          <canvas id="sessionBarChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Session Attendance Summary</span>
+        <span class="text-muted" style="font-size:12px;">{{ session_stats|length }} sessions</span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Session</th>
+              <th>Date</th>
+              <th>Present</th>
+              <th>Late</th>
+              <th>Absent</th>
+              <th>Excused</th>
+              <th>Total</th>
+              <th>Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for stat in session_stats %}
+            <tr>
+              <td class="text-muted" style="font-size:12px;">{{ forloop.counter }}</td>
+              <td>
+                <a href="{% url 'session_detail' stat.session.pk %}" style="color:#0b1f3a; font-weight:500; text-decoration:none;">
+                  {{ stat.session.title|truncatechars:35 }}
+                </a>
+                <div style="font-size:11px; color:#9aa3b5;">{{ stat.session.get_session_type_display }}</div>
+              </td>
+              <td class="text-muted" style="font-size:12px; white-space:nowrap;">{{ stat.session.date|date:"M d, Y" }}</td>
+              <td style="color:#155934; font-weight:600;">{{ stat.present }}</td>
+              <td style="color:#856404;">{{ stat.late }}</td>
+              <td style="color:#a61c1c;">{{ stat.absent }}</td>
+              <td style="color:#1e40af;">{{ stat.excused }}</td>
+              <td class="text-muted">{{ stat.total }}</td>
+              <td>
+                {% if stat.total > 0 %}
+                {% widthratio stat.present stat.total 100 as rate %}
+                <span style="font-size:12px; font-weight:600;
+                  color:{% if rate >= 75 %}#155934{% elif rate >= 50 %}#856404{% else %}#a61c1c{% endif %};">
+                  {{ rate }}%
+                </span>
+                {% else %}—{% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="9" style="text-align:center; padding:24px; color:#9aa3b5;">No session records found for the selected period.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Top Attendees -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Top Attendees</span>
+        <span class="text-muted" style="font-size:12px;">By presence count</span>
+      </div>
+      <div class="card-body" style="padding: 12px 20px;">
+        {% for citizen in top_attendees %}
+        <div class="top-attendee">
+          <div class="rank-num {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+            {{ forloop.counter }}
+          </div>
+          <div style="flex:1; min-width:0;">
+            <a href="{% url 'citizen_detail' citizen.pk %}" style="text-decoration:none; color:#0b1f3a; font-weight:500; font-size:13.5px;">
+              {{ citizen.full_name }}
+            </a>
+            <div style="font-size:11.5px; color:#9aa3b5;">{{ citizen.get_category_display }}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:700; font-size:16px; color:#0b1f3a; font-family:'Playfair Display',serif;">{{ citizen.present_count }}</div>
+            <div style="font-size:10px; color:#9aa3b5;">sessions</div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-muted" style="text-align:center; padding:20px 0;">No data yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const sessionTypeData = {{ session_type_counts|safe }};
+const labels = sessionTypeData.map(d => d.label);
+const counts = sessionTypeData.map(d => d.count);
+const colors = [
+  '#0b1f3a','#1a3560','#c8a94f','#2ecc71','#e74c3c',
+  '#3498db','#f39c12','#9b59b6','#1abc9c','#e67e22'
+];
+
+const ctx = document.getElementById('sessionBarChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'Sessions',
+      data: counts,
+      backgroundColor: colors.slice(0, counts.length),
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+    },
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#f0f2f5' }, ticks: { stepSize: 1, font: { size: 11 } } },
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+</script>
+{% endblock %}

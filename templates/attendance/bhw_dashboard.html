@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}BHW Dashboard — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Barangay Health Worker — Dashboard{% endblock %}
+{% block content %}
+<div class="stats-grid mb-24">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-notes-medical"></i></div>
+    <div><div class="stat-value">{{ total_health_records }}</div><div class="stat-label">Health Records</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#fee2e2; color:#ef4444;"><i class="fas fa-heart-crack"></i></div>
+    <div><div class="stat-value">{{ critical_cases }}</div><div class="stat-label">Critical Cases</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-house-medical"></i></div>
+    <div><div class="stat-value">{{ today_visits }}</div><div class="stat-label">Today's Visits</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon gold"><i class="fas fa-syringe"></i></div>
+    <div><div class="stat-value">{{ upcoming_immunizations }}</div><div class="stat-label">Due Immunizations (30d)</div></div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:18px;">
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-house-medical"></i> Recent Household Visits</span><a href="{% url 'household_visit_list' %}" class="btn btn-sm btn-outline">All</a></div>
+    <div class="card-body">
+      {% for v in recent_visits %}
+      <div style="padding:9px 0; border-bottom:1px solid #eef0f4; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-weight:500; font-size:13px;">{{ v.citizen.full_name }}</div>
+          <div style="font-size:11px; color:#888;">{{ v.purpose }} — {{ v.visit_date|date:"M d, Y" }}</div>
+        </div>
+        <span style="font-size:11px; background:#eef0f4; padding:2px 8px; border-radius:10px;">{{ v.get_purpose_display }}</span>
+      </div>
+      {% empty %}
+      <p style="text-align:center; color:#888; padding:20px 0;">No visits recorded.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-bolt"></i> Quick Actions</span></div>
+    <div class="card-body" style="display:grid; gap:10px;">
+      <a href="{% url 'health_record_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Health Record</a>
+      <a href="{% url 'immunization_create' %}" class="btn btn-outline"><i class="fas fa-syringe"></i> Record Immunization</a>
+      <a href="{% url 'household_visit_create' %}" class="btn btn-gold"><i class="fas fa-house-medical"></i> Log Household Visit</a>
+      <a href="{% url 'health_record_list' %}" class="btn btn-outline"><i class="fas fa-notes-medical"></i> View All Records</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

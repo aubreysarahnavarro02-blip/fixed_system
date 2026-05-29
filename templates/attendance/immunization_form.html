@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Record Immunization — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Record Immunization{% endblock %}
+{% block content %}
+<div class="card" style="max-width:660px; margin:0 auto;">
+  <div class="card-header"><span class="card-title"><i class="fas fa-syringe"></i> {{ action }} Immunization</span></div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Resident *</label>
+        <select name="citizen" class="form-control" required>
+          <option value="">— Select —</option>
+          {% for c in citizens %}<option value="{{ c.pk }}">{{ c.full_name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Vaccine Name *</label>
+          <input name="vaccine_name" class="form-control" required placeholder="e.g. BCG, Hepatitis B, MMR">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dose</label>
+          <input name="dose" class="form-control" placeholder="e.g. 1st dose, Booster">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date Given *</label>
+          <input name="date_given" type="date" class="form-control" value="{{ today }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Next Dose Date</label>
+          <input name="next_dose_date" type="date" class="form-control">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea name="notes" class="form-control" rows="3" placeholder="Additional notes..."></textarea>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> Save</button>
+        <a href="{% url 'immunization_list' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

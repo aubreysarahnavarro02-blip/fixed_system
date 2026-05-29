@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Assign Task — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}{{ action }} Task{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:700px; margin:0 auto;">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-list-check"></i> {{ action }} Maintenance / Work Task</span>
+  </div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Task Title *</label>
+        <input name="title" class="form-control" required placeholder="e.g. Clean Hall 1, Fix Drainage, Print Documents">
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select name="priority" class="form-control">
+            {% for v,l in priority_choices %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input name="due_date" type="date" class="form-control" value="{{ today }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Assign To</label>
+        <select name="assigned_to" class="form-control">
+          <option value="">— Unassigned —</option>
+          {% for u in staff_users %}<option value="{{ u.pk }}">{{ u.get_full_name }} ({{ u.profile.get_role_display }})</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location / Area</label>
+        <input name="location" class="form-control" placeholder="e.g. Barangay Hall, Purok 3, Covered Court">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description / Instructions</label>
+        <textarea name="description" class="form-control" rows="4" placeholder="Detailed work instructions..."></textarea>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button type="submit" class="btn btn-gold"><i class="fas fa-paper-plane"></i> {{ action }} Task</button>
+        <a href="{% url 'task_list' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

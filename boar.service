@@ -1,0 +1,31 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# systemd service unit for Barangay Official Attendance Registry (BOAR)
+# Install:  sudo cp boar.service /etc/systemd/system/boar.service
+#           sudo systemctl daemon-reload
+#           sudo systemctl enable boar
+#           sudo systemctl start boar
+# ─────────────────────────────────────────────────────────────────────────────
+[Unit]
+Description=Barangay Official Attendance Registry — Gunicorn Application Server
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=notify
+User=boar
+Group=www-data
+WorkingDirectory=/var/www/boar
+EnvironmentFile=/var/www/boar/.env
+ExecStart=/var/www/boar/venv/bin/gunicorn \
+    --config /var/www/boar/gunicorn.conf.py \
+    barangay_config.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+Restart=on-failure
+RestartSec=5s
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

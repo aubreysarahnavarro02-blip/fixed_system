@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — Barangay Official Attendance And Session Management Registry{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+  .grid-2-eq { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .announcement-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #eef0f4;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .announcement-item:last-child { border-bottom: none; }
+  .ann-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-top: 5px; flex-shrink: 0;
+  }
+  .session-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eef0f4; }
+  .session-row:last-child { border-bottom: none; }
+  .chart-container { position: relative; height: 220px; }
+  .donut-container { position: relative; height: 200px; }
+
+  /* ── Real-time Clock ──────────────────────────── */
+  .clock-card {
+    background: linear-gradient(135deg, #0b1f3a 0%, #1a3560 100%);
+    border-radius: 12px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(11,31,58,0.18);
+  }
+  .clock-left { display: flex; align-items: center; gap: 16px; }
+  .clock-icon {
+    width: 48px; height: 48px;
+    background: rgba(200,169,79,0.15);
+    border: 1.5px solid rgba(200,169,79,0.4);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #c8a94f;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .clock-time {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .clock-seconds {
+    font-size: 18px;
+    color: #c8a94f;
+    font-weight: 500;
+  }
+  .clock-date {
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 4px;
+    letter-spacing: 0.3px;
+  }
+  .clock-right { text-align: right; }
+  .clock-location {
+    font-size: 12px;
+    color: rgba(200,169,79,0.8);
+    display: flex; align-items: center; gap: 5px; justify-content: flex-end;
+    margin-bottom: 4px;
+  }
+  .clock-greeting {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+  }
+  .clock-greeting strong { color: #e2c97e; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Real-time Clock ─────────────────────────────────────────── -->
+<div class="clock-card">
+  <div class="clock-left">
+    <div class="clock-icon"><i class="fas fa-clock"></i></div>
+    <div>
+      <div class="clock-time">
+        <span id="clock-hm">--:--</span><span class="clock-seconds">:<span id="clock-ss">--</span></span>
+        <span id="clock-ampm" style="font-size:14px; color:#c8a94f; margin-left:4px; font-weight:600;"></span>
+      </div>
+      <div class="clock-date" id="clock-date">Loading…</div>
+    </div>
+  </div>
+  <div class="clock-right">
+    <div class="clock-location"><i class="fas fa-map-marker-alt"></i> {{ BARANGAY_NAME }}, {{ BARANGAY_CITY }}</div>
+    <div class="clock-greeting" id="clock-greeting">Good day, <strong>{{ user.get_full_name|default:user.username }}</strong></div>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="stats-grid mb-24">
+  <div class="stat-card">
+    <div class="stat-icon navy"><i class="fas fa-users"></i></div>
+    <div>
+      <div class="stat-value">{{ total_citizens }}</div>
+      <div class="stat-label">Registered Citizens</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon gold"><i class="fas fa-landmark"></i></div>
+    <div>
+      <div class="stat-value">{{ total_sessions }}</div>
+      <div class="stat-label">Total Sessions</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-calendar-day"></i></div>
+    <div>
+      <div class="stat-value">{{ today_sessions.count }}</div>
+      <div class="stat-label">Today's Sessions</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div>
+    <div>
+      <div class="stat-value">{{ upcoming_sessions.count }}</div>
+      <div class="stat-label">Upcoming Sessions</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid-2 mb-24">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Monthly Attendance — {{ today.year }}</span>
+      <span class="text-muted" style="font-size:12px;"><i class="fas fa-chart-line"></i> Attendance per month</span>
+    </div>
+    <div class="card-body">
+      <div class="chart-container">
+        <canvas id="attendanceLineChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Sessions by Type</span>
+    </div>
+    <div class="card-body">
+      <div class="donut-container">
+        <canvas id="sessionDonutChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Row -->
+<div class="grid-2-eq">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Upcoming Sessions</span>
+      <a href="{% url 'session_list' %}" class="btn btn-outline btn-sm">View All</a>
+    </div>
+    <div class="card-body" style="padding: 12px 20px;">
+      {% for s in upcoming_sessions %}
+      <div class="session-row">
+        <div>
+          <div style="font-weight:500; font-size:13.5px; color:#1e2b3c;">{{ s.title }}</div>
+          <div style="font-size:11.5px; color:#9aa3b5;">
+            <i class="fas fa-calendar-alt"></i> {{ s.date }} &bull; {{ s.start_time|time:"g:i A" }}
+            {% if s.hall %} &bull; {{ s.hall.name }}{% endif %}
+          </div>
+        </div>
+        <span class="badge badge-{{ s.status }}">{{ s.get_status_display }}</span>
+      </div>
+      {% empty %}
+      <div class="text-muted" style="text-align:center; padding: 20px 0; font-size:13px;">
+        <i class="fas fa-calendar-xmark"></i> No upcoming sessions.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Announcements</span>
+      <a href="{% url 'announcement_list' %}" class="btn btn-outline btn-sm">Manage</a>
+    </div>
+    <div class="card-body" style="padding: 12px 20px;">
+      {% for ann in announcements %}
+      <div class="announcement-item">
+        <div class="ann-dot" style="background: {% if ann.priority == 'urgent' %}#e74c3c{% elif ann.priority == 'high' %}#f39c12{% else %}#3498db{% endif %};"></div>
+        <div>
+          <div style="font-weight:500; font-size:13.5px;">{{ ann.title }}</div>
+          <div style="font-size:12px; color:#9aa3b5;">{{ ann.content|truncatechars:80 }}</div>
+          <div style="font-size:11px; color:#aab4c5; margin-top:3px;">{{ ann.created_at|date:"M d, Y" }}</div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-muted" style="text-align:center; padding: 20px 0; font-size:13px;">
+        <i class="fas fa-bullhorn"></i> No announcements.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ── Real-time Clock ──────────────────────────────────────────
+(function() {
+  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function getGreeting(h) {
+    if (h < 12) return 'Good morning';
+    if (h < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  function tick() {
+    const now  = new Date();
+    let   h    = now.getHours();
+    const m    = now.getMinutes();
+    const s    = now.getSeconds();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+
+    document.getElementById('clock-hm').textContent   = pad(h) + ':' + pad(m);
+    document.getElementById('clock-ss').textContent   = pad(s);
+    document.getElementById('clock-ampm').textContent = ampm;
+
+    const d = now;
+    document.getElementById('clock-date').textContent =
+      DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+
+    const greetEl = document.getElementById('clock-greeting');
+    const name    = greetEl.querySelector('strong').outerHTML;
+    greetEl.innerHTML = getGreeting(now.getHours()) + ', ' + name;
+  }
+
+  tick();
+  setInterval(tick, 1000);
+})();
+
+// ── Charts ───────────────────────────────────────────────────
+const monthlyData = {{ monthly_attendance|safe }};
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Line Chart
+const lineCtx = document.getElementById('attendanceLineChart').getContext('2d');
+const gradient = lineCtx.createLinearGradient(0, 0, 0, 220);
+gradient.addColorStop(0, 'rgba(11, 31, 58, 0.15)');
+gradient.addColorStop(1, 'rgba(11, 31, 58, 0.01)');
+
+new Chart(lineCtx, {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [{
+      label: 'Attendance',
+      data: monthlyData,
+      borderColor: '#0b1f3a',
+      backgroundColor: gradient,
+      borderWidth: 2.5,
+      pointBackgroundColor: '#c8a94f',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      tension: 0.4,
+      fill: true,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#f0f2f5' }, ticks: { font: { size: 11 } } },
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+// Donut Chart
+const sessionStats = {{ session_type_stats|safe }};
+const labels = sessionStats.map(s => s.session_type.charAt(0).toUpperCase() + s.session_type.slice(1));
+const counts = sessionStats.map(s => s.count);
+const colors = ['#0b1f3a','#1a3560','#c8a94f','#2ecc71','#e74c3c','#3498db','#f39c12','#9b59b6','#1abc9c'];
+
+const donutCtx = document.getElementById('sessionDonutChart').getContext('2d');
+new Chart(donutCtx, {
+  type: 'doughnut',
+  data: {
+    labels: labels,
+    datasets: [{
+      data: counts,
+      backgroundColor: colors.slice(0, counts.length),
+      borderWidth: 2,
+      borderColor: '#fff',
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '68%',
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: { boxWidth: 12, font: { size: 11 }, padding: 10 }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

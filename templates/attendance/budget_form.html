@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Add Budget — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Add Budget Allocation{% endblock %}
+{% block content %}
+<div class="card" style="max-width:600px; margin:0 auto;">
+  <div class="card-header"><span class="card-title"><i class="fas fa-wallet"></i> {{ action }} Budget Allocation</span></div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Fiscal Year *</label>
+        <input name="fiscal_year" type="number" class="form-control" value="{{ today.year }}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fund / Program Name *</label>
+        <input name="fund" class="form-control" required placeholder="e.g. General Fund, 20% Development Fund">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description *</label>
+        <input name="description" class="form-control" required placeholder="Brief description">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Allocated Amount (₱) *</label>
+        <input name="allocated_amount" type="number" step="0.01" class="form-control" required placeholder="0.00">
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> Save</button>
+        <a href="{% url 'budget_list' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

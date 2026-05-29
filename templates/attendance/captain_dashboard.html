@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Captain's Dashboard — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Punong Barangay — Executive Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .exec-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  .exec-grid-2 { display:grid; grid-template-columns:2fr 1fr; gap:18px; }
+  .approval-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eef0f4; }
+  .approval-row:last-child { border-bottom:none; }
+  .status-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+  .badge-pending { background:#fff3cd; color:#856404; }
+  .badge-approved { background:#d1fae5; color:#065f46; }
+  .badge-rejected { background:#fee2e2; color:#991b1b; }
+  .badge-enacted { background:#dbeafe; color:#1e40af; }
+  .progress-bar-wrap { background:#eef0f4; border-radius:8px; height:8px; overflow:hidden; }
+  .progress-bar-fill { height:8px; border-radius:8px; background:linear-gradient(90deg,#1a3a6b,#2563eb); }
+  .finance-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eef0f4; font-size:13px; }
+  .finance-row:last-child { border-bottom:none; }
+  .incident-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+  .sev-low { background:#dcfce7; color:#166534; }
+  .sev-moderate { background:#fef9c3; color:#854d0e; }
+  .sev-high { background:#fee2e2; color:#991b1b; }
+  .sev-critical { background:#fce7f3; color:#9d174d; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Top KPI Cards -->
+<div class="stats-grid mb-24">
+  <div class="stat-card">
+    <div class="stat-icon gold"><i class="fas fa-stamp"></i></div>
+    <div>
+      <div class="stat-value">{{ pending_approvals }}</div>
+      <div class="stat-label">Pending Approvals</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-diagram-project"></i></div>
+    <div>
+      <div class="stat-value">{{ active_projects }}</div>
+      <div class="stat-label">Active Projects</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon navy"><i class="fas fa-gavel"></i></div>
+    <div>
+      <div class="stat-value">{{ open_complaints }}</div>
+      <div class="stat-label">Open Cases</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-scroll"></i></div>
+    <div>
+      <div class="stat-value">{{ pending_ordinances }}</div>
+      <div class="stat-label">Pending Ordinances</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+    <div>
+      <div class="stat-value">{{ total_residents }}</div>
+      <div class="stat-label">Total Residents</div>
+    </div>
+  </div>
+</div>
+
+<div class="exec-grid-2 mb-24">
+  <!-- Pending Approvals Quick Panel -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-stamp"></i> Pending Approvals</span>
+      <a href="{% url 'approval_list' %}" class="btn btn-sm btn-outline">View All</a>
+    </div>
+    <div class="card-body">
+      {% if pending_approvals == 0 %}
+      <div style="text-align:center; padding:30px 0; color:#888;">
+        <i class="fas fa-check-circle" style="font-size:32px; color:#10b981;"></i>
+        <p style="margin-top:8px;">All requests are processed.</p>
+      </div>
+      {% else %}
+      <div style="padding:8px 0; color:#856404; font-size:13px;">
+        <i class="fas fa-clock"></i> {{ pending_approvals }} request{{ pending_approvals|pluralize }} awaiting your action.
+      </div>
+      <a href="{% url 'approval_list' %}?status=pending" class="btn btn-gold" style="margin-top:10px; width:100%;">
+        <i class="fas fa-stamp"></i> Review Requests
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Monthly Finance Overview -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-coins"></i> This Month</span>
+    </div>
+    <div class="card-body">
+      <div class="finance-row">
+        <span><i class="fas fa-arrow-up" style="color:#10b981;"></i> Revenue</span>
+        <strong style="color:#10b981;">₱{{ monthly_revenue|floatformat:2 }}</strong>
+      </div>
+      <div class="finance-row">
+        <span><i class="fas fa-arrow-down" style="color:#ef4444;"></i> Expense</span>
+        <strong style="color:#ef4444;">₱{{ monthly_expense|floatformat:2 }}</strong>
+      </div>
+      <div class="finance-row" style="border-top:2px solid #0b1f3a; margin-top:4px; padding-top:10px;">
+        <span><strong>Balance</strong></span>
+        <strong style="color:#0b1f3a;">₱{{ monthly_balance|floatformat:2 }}</strong>
+      </div>
+      <a href="{% url 'financial_list' %}" class="btn btn-outline" style="margin-top:10px; width:100%; font-size:12px;">
+        <i class="fas fa-receipt"></i> View Financials
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="exec-grid mb-24">
+  <!-- Upcoming Sessions -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-calendar-alt"></i> Upcoming Sessions</span>
+      <a href="{% url 'session_list' %}" class="btn btn-sm btn-outline">All</a>
+    </div>
+    <div class="card-body">
+      {% for s in upcoming_sessions %}
+      <div class="approval-row">
+        <div>
+          <div style="font-weight:500; font-size:13px;">{{ s.title }}</div>
+          <div style="font-size:11px; color:#888;">{{ s.date }} &nbsp;|&nbsp; {{ s.start_time }}</div>
+        </div>
+        <a href="{% url 'session_detail' s.pk %}" class="btn btn-sm btn-outline">View</a>
+      </div>
+      {% empty %}
+      <p style="color:#888; text-align:center; padding:20px 0; font-size:13px;">No upcoming sessions.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Recent Incidents -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-triangle-exclamation"></i> Open Incidents</span>
+      <a href="{% url 'incident_list' %}" class="btn btn-sm btn-outline">All</a>
+    </div>
+    <div class="card-body">
+      {% for inc in recent_incidents %}
+      <div class="approval-row">
+        <div>
+          <span class="incident-badge sev-{{ inc.severity }}">{{ inc.get_severity_display }}</span>
+          <div style="font-size:12px; margin-top:4px;">{{ inc.title|truncatechars:40 }}</div>
+        </div>
+        <a href="{% url 'incident_detail' inc.pk %}" class="btn btn-sm btn-outline">View</a>
+      </div>
+      {% empty %}
+      <p style="color:#888; text-align:center; padding:20px 0; font-size:13px;"><i class="fas fa-shield-check"></i> No open incidents.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-bolt"></i> Quick Actions</span></div>
+    <div class="card-body" style="display:grid; gap:10px;">
+      <a href="{% url 'ordinance_create' %}" class="btn btn-primary"><i class="fas fa-scroll"></i> Draft Ordinance</a>
+      <a href="{% url 'project_create' %}" class="btn btn-outline"><i class="fas fa-diagram-project"></i> Propose Project</a>
+      <a href="{% url 'complaint_create' %}" class="btn btn-outline"><i class="fas fa-gavel"></i> File Case</a>
+      <a href="{% url 'announcement_create' %}" class="btn btn-gold"><i class="fas fa-bullhorn"></i> Post Announcement</a>
+      <a href="{% url 'audit_log_list' %}" class="btn btn-outline"><i class="fas fa-file-shield"></i> View Audit Log</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

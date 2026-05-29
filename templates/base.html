@@ -1,0 +1,688 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Barangay Official Attendance Registry{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0b1f3a;
+      --navy-light: #112847;
+      --navy-mid: #1a3560;
+      --gold: #c8a94f;
+      --gold-light: #e2c97e;
+      --gold-dim: #a08030;
+      --red-ph: #ce1126;
+      --blue-ph: #0038a8;
+      --white: #f8f9fb;
+      --gray-100: #eef0f4;
+      --gray-200: #dde1ea;
+      --gray-400: #9aa3b5;
+      --gray-600: #5a6478;
+      --green: #2ecc71;
+      --orange: #f39c12;
+      --red: #e74c3c;
+      --sidebar-w: 260px;
+      --header-h: 64px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--gray-100);
+      color: #1e2b3c;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--navy);
+      min-height: 100vh;
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+    }
+    .sidebar-brand {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid rgba(200,169,79,0.25);
+      background: linear-gradient(135deg, var(--navy-mid), var(--navy));
+    }
+    .brand-emblem {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .brand-seal {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 12px rgba(200,169,79,0.4);
+      flex-shrink: 0;
+    }
+    .brand-text h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 13px;
+      color: var(--gold-light);
+      line-height: 1.3;
+      letter-spacing: 0.3px;
+    }
+    .brand-text p {
+      font-size: 10px;
+      color: var(--gray-400);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .brand-tagline {
+      font-size: 9px;
+      color: rgba(200,169,79,0.6);
+      font-style: italic;
+      line-height: 1.4;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ── Nav ─────────────────────────────────────────── */
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+    .nav-section-label {
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      padding: 14px 20px 4px;
+      font-weight: 600;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      color: rgba(248,249,251,0.65);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 400;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+      position: relative;
+    }
+    .nav-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: var(--white);
+      border-left-color: var(--gold-dim);
+    }
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(200,169,79,0.15), transparent);
+      color: var(--gold-light);
+      border-left-color: var(--gold);
+      font-weight: 500;
+    }
+    .nav-item i { width: 18px; text-align: center; font-size: 14px; }
+
+    /* ── Sidebar Footer ──────────────────────────────── */
+    .sidebar-footer {
+      padding: 14px 20px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .user-card {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .user-avatar {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--gold-dim), var(--navy-mid));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: var(--gold-light);
+      flex-shrink: 0;
+    }
+    .user-info small { color: var(--gray-400); font-size: 10px; display: block; }
+    .user-info span { color: var(--white); font-size: 12.5px; font-weight: 500; }
+    .btn-logout {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--gray-400);
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+      transition: color 0.2s;
+      font-size: 14px;
+    }
+    .btn-logout:hover { color: var(--red); }
+
+    /* ── Main Content ─────────────────────────────────── */
+    .main-content {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .top-bar {
+      height: var(--header-h);
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      gap: 16px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .top-bar-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      color: var(--navy);
+      flex: 1;
+    }
+    .top-bar-subtitle {
+      font-size: 12px;
+      color: var(--gray-400);
+      font-style: italic;
+    }
+    .ph-flag-bar {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+    }
+    .ph-flag-bar span {
+      display: block;
+      width: 4px;
+      height: 20px;
+      border-radius: 2px;
+    }
+
+    .page-body { padding: 28px; flex: 1; }
+
+    /* ── Cards ────────────────────────────────────────── */
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      color: var(--navy);
+    }
+    .card-body { padding: 20px; }
+
+    /* ── Buttons ──────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-primary {
+      background: var(--navy);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--navy-mid); color: white; }
+    .btn-gold {
+      background: var(--gold);
+      color: var(--navy);
+    }
+    .btn-gold:hover { background: var(--gold-light); }
+    .btn-danger { background: var(--red); color: white; }
+    .btn-danger:hover { background: #c0392b; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--gray-200);
+      color: var(--gray-600);
+    }
+    .btn-outline:hover { border-color: var(--navy); color: var(--navy); }
+    .btn-sm { padding: 5px 11px; font-size: 12px; }
+    .btn-xs { padding: 3px 8px; font-size: 11px; }
+
+    /* ── Badges ───────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge-present { background: #d4f5e4; color: #1a7a45; }
+    .badge-late { background: #fef3cd; color: #856404; }
+    .badge-absent { background: #fde8e8; color: #a61c1c; }
+    .badge-excused { background: #e0e9ff; color: #2945a8; }
+    .badge-scheduled { background: #dbeafe; color: #1e40af; }
+    .badge-ongoing { background: #d4f5e4; color: #1a7a45; }
+    .badge-completed { background: var(--gray-200); color: var(--gray-600); }
+    .badge-cancelled { background: #fde8e8; color: #a61c1c; }
+    .badge-postponed { background: #fef3cd; color: #856404; }
+    .badge-urgent { background: #fde8e8; color: #a61c1c; }
+    .badge-high { background: #fff0e0; color: #b45309; }
+    .badge-normal { background: var(--gray-100); color: var(--gray-600); }
+
+    /* ── Tables ───────────────────────────────────────── */
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    th {
+      background: var(--gray-100);
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      border-bottom: 2px solid var(--gray-200);
+    }
+    td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--gray-100);
+      color: #2a3548;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f5f7fb; }
+
+    /* ── Forms ────────────────────────────────────────── */
+    .form-control {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      font-size: 13.5px;
+      font-family: 'DM Sans', sans-serif;
+      color: #1e2b3c;
+      transition: border-color 0.2s;
+      background: white;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--navy-mid);
+      box-shadow: 0 0 0 3px rgba(17,40,71,0.1);
+    }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin-bottom: 5px;
+      letter-spacing: 0.3px;
+    }
+    .form-group { margin-bottom: 18px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+    /* ── Alerts ───────────────────────────────────────── */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .alert-success { background: #d4f5e4; color: #155934; border-left: 4px solid var(--green); }
+    .alert-error { background: #fde8e8; color: #7f1d1d; border-left: 4px solid var(--red); }
+    .alert-info { background: #dbeafe; color: #1e3a8a; border-left: 4px solid #3b82f6; }
+    .alert-warning { background: #fef3cd; color: #7c4f00; border-left: 4px solid var(--orange); }
+
+    /* ── Stats Grid ───────────────────────────────────── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .stat-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .stat-icon.navy { background: rgba(11,31,58,0.1); color: var(--navy); }
+    .stat-icon.gold { background: rgba(200,169,79,0.15); color: var(--gold-dim); }
+    .stat-icon.green { background: rgba(46,204,113,0.12); color: #1a7a45; }
+    .stat-icon.blue { background: rgba(52,152,219,0.12); color: #1a5a9a; }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1;
+      font-family: 'Playfair Display', serif;
+    }
+    .stat-label { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
+
+    /* ── Pagination ───────────────────────────────────── */
+    .pagination {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .page-link {
+      padding: 6px 12px;
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--navy);
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .page-link:hover, .page-link.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+    /* ── Misc ─────────────────────────────────────────── */
+    .text-muted { color: var(--gray-400); }
+    .text-gold { color: var(--gold); }
+    .text-navy { color: var(--navy); }
+    .fw-600 { font-weight: 600; }
+    .d-flex { display: flex; }
+    .align-center { align-items: center; }
+    .gap-8 { gap: 8px; }
+    .gap-12 { gap: 12px; }
+    .mb-16 { margin-bottom: 16px; }
+    .mb-24 { margin-bottom: 24px; }
+    .mt-16 { margin-top: 16px; }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .main-content { margin-left: 0; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .form-row-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<!-- ── Sidebar ──────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-emblem">
+      <div class="brand-seal">🏛️</div>
+      <div class="brand-text">
+        <h1>Barangay San Jose</h1>
+        <p>Surigao City, Surigao del Norte</p>
+      </div>
+    </div>
+    <div class="brand-tagline">
+      "Promoting Transparency and Accountability in Barangay Attendance and Service."
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+
+    {# ── OVERVIEW (all roles) ──────────────────────────────── #}
+    <span class="nav-section-label">Overview</span>
+    <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <i class="fas fa-chart-line"></i> Dashboard
+    </a>
+    <a href="{% url 'calendar' %}" class="nav-item {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
+      <i class="fas fa-calendar-alt"></i> Calendar
+    </a>
+    <a href="{% url 'announcement_list' %}" class="nav-item {% if 'announcement' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-bullhorn"></i> Announcements
+    </a>
+
+    {# ── PUNONG BARANGAY ──────────────────────────────────── #}
+    {% if user.profile.role in 'punong_barangay,admin' %}
+    <span class="nav-section-label">Captain's Office</span>
+    <a href="{% url 'captain_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'captain_dashboard' %}active{% endif %}">
+      <i class="fas fa-star"></i> Executive Dashboard
+    </a>
+    <a href="{% url 'approval_list' %}" class="nav-item {% if 'approval' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-stamp"></i> Approvals
+    </a>
+    <a href="{% url 'ordinance_list' %}" class="nav-item {% if 'ordinance' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-scroll"></i> Ordinances & Resolutions
+    </a>
+    <a href="{% url 'project_list' %}" class="nav-item {% if 'project' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-diagram-project"></i> Projects & Programs
+    </a>
+    <a href="{% url 'complaint_list' %}" class="nav-item {% if 'complaint' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-gavel"></i> Complaints & Cases
+    </a>
+    <a href="{% url 'audit_log_list' %}" class="nav-item {% if 'audit' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-shield-halved"></i> Audit & Transparency
+    </a>
+    {% endif %}
+
+    {# ── TREASURER ────────────────────────────────────────── #}
+    {% if user.profile.role in 'treasurer,punong_barangay,admin' %}
+    <span class="nav-section-label">Treasury</span>
+    {% if user.profile.role == 'treasurer' %}
+    <a href="{% url 'treasurer_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'treasurer_dashboard' %}active{% endif %}">
+      <i class="fas fa-coins"></i> Financial Dashboard
+    </a>
+    {% endif %}
+    <a href="{% url 'financial_list' %}" class="nav-item {% if 'financial' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-receipt"></i> Revenue & Expenses
+    </a>
+    <a href="{% url 'budget_list' %}" class="nav-item {% if 'budget' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-wallet"></i> Budget Allocation
+    </a>
+    {% endif %}
+
+    {# ── SESSIONS / SECRETARY ─────────────────────────────── #}
+    {% if user.profile.role in 'secretary,admin,punong_barangay,kagawad,sb_chairperson' %}
+    <span class="nav-section-label">Sessions & Records</span>
+    <a href="{% url 'session_list' %}" class="nav-item {% if 'session' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-landmark"></i> All Sessions
+    </a>
+    <a href="{% url 'session_create' %}" class="nav-item">
+      <i class="fas fa-plus-circle"></i> New Session
+    </a>
+    <a href="{% url 'attendance_list' %}" class="nav-item {% if request.resolver_match.url_name == 'attendance_list' %}active{% endif %}">
+      <i class="fas fa-clipboard-check"></i> Attendance Records
+    </a>
+    <a href="{% url 'reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+      <i class="fas fa-file-chart-column"></i> Reports
+    </a>
+    {% endif %}
+
+    {# ── CITIZENS ─────────────────────────────────────────── #}
+    {% if user.profile.role in 'secretary,admin,punong_barangay,kagawad,sb_chairperson,bhw,bns' %}
+    <span class="nav-section-label">Residents</span>
+    <a href="{% url 'citizen_list' %}" class="nav-item {% if 'citizen' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-users"></i> Resident Registry
+    </a>
+    {% if user.profile.role in 'secretary,admin,punong_barangay' %}
+    <a href="{% url 'citizen_create' %}" class="nav-item">
+      <i class="fas fa-user-plus"></i> Register Resident
+    </a>
+    {% endif %}
+    {% endif %}
+
+    {# ── KAGAWAD / SB CHAIRPERSON ─────────────────────────── #}
+    {% if user.profile.role in 'kagawad,sb_chairperson,punong_barangay,admin' %}
+    <span class="nav-section-label">Legislation & Projects</span>
+    <a href="{% url 'ordinance_list' %}" class="nav-item {% if 'ordinance' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-scroll"></i> Ordinances
+    </a>
+    <a href="{% url 'project_list' %}" class="nav-item {% if 'project' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-diagram-project"></i> Projects
+    </a>
+    <a href="{% url 'complaint_list' %}" class="nav-item {% if 'complaint' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-comments"></i> Community Concerns
+    </a>
+    <a href="{% url 'approval_create' %}" class="nav-item">
+      <i class="fas fa-paper-plane"></i> Submit Request
+    </a>
+    {% endif %}
+
+    {# ── TANOD ─────────────────────────────────────────────── #}
+    {% if user.profile.role in 'tanod,punong_barangay,admin,secretary' %}
+    <span class="nav-section-label">Security & Peace Order</span>
+    {% if user.profile.role == 'tanod' %}
+    <a href="{% url 'tanod_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'tanod_dashboard' %}active{% endif %}">
+      <i class="fas fa-shield-alt"></i> Tanod Dashboard
+    </a>
+    {% endif %}
+    <a href="{% url 'incident_list' %}" class="nav-item {% if 'incident' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-triangle-exclamation"></i> Incident Reports
+    </a>
+    <a href="{% url 'incident_create' %}" class="nav-item">
+      <i class="fas fa-bell"></i> Report Incident
+    </a>
+    <a href="{% url 'patrol_list' %}" class="nav-item {% if 'patrol' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-person-walking"></i> Patrol Schedule
+    </a>
+    {% endif %}
+
+    {# ── BHW ───────────────────────────────────────────────── #}
+    {% if user.profile.role in 'bhw,punong_barangay,admin,secretary' %}
+    <span class="nav-section-label">Health Services</span>
+    {% if user.profile.role == 'bhw' %}
+    <a href="{% url 'bhw_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'bhw_dashboard' %}active{% endif %}">
+      <i class="fas fa-heart-pulse"></i> Health Dashboard
+    </a>
+    {% endif %}
+    <a href="{% url 'health_record_list' %}" class="nav-item {% if 'health_record' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-notes-medical"></i> Health Records
+    </a>
+    <a href="{% url 'immunization_list' %}" class="nav-item {% if 'immunization' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-syringe"></i> Immunizations
+    </a>
+    <a href="{% url 'household_visit_list' %}" class="nav-item {% if 'household_visit' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-house-medical"></i> Household Visits
+    </a>
+    {% endif %}
+
+    {# ── BNS ───────────────────────────────────────────────── #}
+    {% if user.profile.role in 'bns,bhw,punong_barangay,admin' %}
+    <span class="nav-section-label">Nutrition Program</span>
+    {% if user.profile.role == 'bns' %}
+    <a href="{% url 'bns_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'bns_dashboard' %}active{% endif %}">
+      <i class="fas fa-apple-whole"></i> Nutrition Dashboard
+    </a>
+    {% endif %}
+    <a href="{% url 'nutrition_record_list' %}" class="nav-item {% if 'nutrition_record' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-weight-scale"></i> Growth Monitoring
+    </a>
+    <a href="{% url 'feeding_program_list' %}" class="nav-item {% if 'feeding_program' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-bowl-food"></i> Feeding Programs
+    </a>
+    {% endif %}
+
+    {# ── UTILITY / ADMIN STAFF ────────────────────────────── #}
+    {% if user.profile.role in 'utility,staff,punong_barangay,admin,secretary' %}
+    <span class="nav-section-label">Operations</span>
+    {% if user.profile.role in 'utility,staff' %}
+    <a href="{% url 'utility_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'utility_dashboard' %}active{% endif %}">
+      <i class="fas fa-screwdriver-wrench"></i> Task Dashboard
+    </a>
+    {% endif %}
+    <a href="{% url 'task_list' %}" class="nav-item {% if 'task' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-list-check"></i> Task Management
+    </a>
+    <a href="{% url 'inventory_list' %}" class="nav-item {% if 'inventory' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-boxes-stacked"></i> Inventory
+    </a>
+    <a href="{% url 'hall_list' %}" class="nav-item {% if 'hall' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-building"></i> Halls & Venues
+    </a>
+    <a href="{% url 'daily_log_create' %}" class="nav-item {% if 'daily_log' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-clock"></i> Daily Log
+    </a>
+    {% endif %}
+
+    {# ── ADMIN SYSTEM PANEL ───────────────────────────────── #}
+    {% if user.profile.role in 'admin,punong_barangay' %}
+    <span class="nav-section-label">System</span>
+    <a href="{% url 'user_list' %}" class="nav-item {% if request.resolver_match.url_name == 'user_list' %}active{% endif %}">
+      <i class="fas fa-user-shield"></i> System Users
+    </a>
+    <a href="{% url 'register_user' %}" class="nav-item">
+      <i class="fas fa-user-gear"></i> Add User
+    </a>
+    <a href="{% url 'login_activity_log' %}" class="nav-item {% if request.resolver_match.url_name == 'login_activity_log' %}active{% endif %}">
+      <i class="fas fa-user-clock"></i> Login Activity
+    </a>
+    <a href="{% url 'audit_log_list' %}" class="nav-item {% if 'audit' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fas fa-file-shield"></i> Audit Logs
+    </a>
+    <a href="/admin/" class="nav-item" target="_blank">
+      <i class="fas fa-cog"></i> Django Admin
+    </a>
+    {% endif %}
+
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar"><i class="fas fa-user"></i></div>
+      <div class="user-info">
+        <a href="{% url 'my_profile' %}" class="text-decoration-none text-white">
+          <span>{{ user.get_full_name|default:user.username }}</span>
+          <small>{{ user.profile.get_role_display|default:"User" }}</small>
+        </a>
+      </div>
+      <a href="{% url 'logout' %}" class="btn-logout" title="Logout">
+        <i class="fas fa-right-from-bracket"></i>
+      </a>
+    </div>
+  </div>
+</aside>
+{% endif %}
+
+<!-- ── Main Content ───────────────────────────────────────── -->
+<div class="main-content">
+  {% if user.is_authenticated %}
+  <div class="top-bar">
+    <div>
+      <div class="top-bar-title">{% block page_title %}Dashboard{% endblock %}</div>
+      <div class="top-bar-subtitle">{{ BARANGAY_NAME }}, {{ BARANGAY_CITY }} — {{ SITE_NAME }}</div>
+    </div>
+    <div class="ph-flag-bar" title="Philippines">
+      <span style="background:#0038a8;"></span>
+      <span style="background:#ce1126;"></span>
+      <span style="background:#fcd116;"></span>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="page-body">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }}">
+      <i class="fas fa-circle-info"></i> {{ message }}
+    </div>
+    {% endfor %}
+
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

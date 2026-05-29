@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Citizen Registry — Brgy. San Jose{% endblock %}
+{% block page_title %}Citizen Registry{% endblock %}
+
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding: 14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <input type="text" name="q" value="{{ q }}" class="form-control" style="max-width:240px;" placeholder="Search by name or contact...">
+      <select name="category" class="form-control" style="max-width:200px;">
+        <option value="">All Categories</option>
+        {% for val, lbl in categories %}
+        <option value="{{ val }}" {% if category == val %}selected{% endif %}>{{ lbl }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+      <a href="{% url 'citizen_list' %}" class="btn btn-outline">Clear</a>
+      {% if request.user.profile.role in 'admin,secretary,kagawad,staff' %}
+      <a href="{% url 'citizen_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-user-plus"></i> Register Citizen</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Registered Citizens</span>
+    <span class="text-muted" style="font-size:12px;">{{ page_obj.paginator.count }} total</span>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Full Name</th>
+          <th>Category</th>
+          <th>Gender</th>
+          <th>Age</th>
+          <th>Contact</th>
+          <th>Precinct</th>
+          <th>Attendance %</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for citizen in page_obj %}
+        <tr>
+          <td class="text-muted" style="font-size:12px;">{{ forloop.counter }}</td>
+          <td>
+            <a href="{% url 'citizen_detail' citizen.pk %}" style="color:#0b1f3a; font-weight:500; text-decoration:none;">
+              {{ citizen.full_name }}
+            </a>
+          </td>
+          <td>
+            <span style="font-size:12px;">{{ citizen.get_category_display }}</span>
+          </td>
+          <td class="text-muted">{{ citizen.get_gender_display }}</td>
+          <td class="text-muted">{{ citizen.age|default:"—" }}</td>
+          <td class="text-muted">{{ citizen.contact_number|default:"—" }}</td>
+          <td class="text-muted">{{ citizen.precinct_number|default:"—" }}</td>
+          <td>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="flex:1; height:6px; background:#eef0f4; border-radius:3px; min-width:60px;">
+                <div style="height:6px; border-radius:3px; width:{{ citizen.attendance_rate }}%;
+                  background: {% if citizen.attendance_rate >= 75 %}#2ecc71{% elif citizen.attendance_rate >= 50 %}#f39c12{% else %}#e74c3c{% endif %};"></div>
+              </div>
+              <span style="font-size:12px; font-weight:600;">{{ citizen.attendance_rate }}%</span>
+            </div>
+          </td>
+          <td>
+            <div class="d-flex gap-8">
+              <a href="{% url 'citizen_detail' citizen.pk %}" class="btn btn-outline btn-xs"><i class="fas fa-eye"></i></a>
+              {% if request.user.profile.role in 'admin,secretary,kagawad,staff' %}
+              <a href="{% url 'citizen_edit' citizen.pk %}" class="btn btn-outline btn-xs"><i class="fas fa-pen"></i></a>
+              {% endif %}
+              {% if request.user.profile.role in 'admin,secretary' %}
+              <a href="{% url 'citizen_delete' citizen.pk %}" class="btn btn-danger btn-xs"><i class="fas fa-ban"></i></a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" style="text-align:center; padding:32px; color:#9aa3b5;">
+            <i class="fas fa-users" style="font-size:28px; display:block; margin-bottom:8px;"></i>
+            No citizens found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <div class="pagination">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&category={{ category }}" class="page-link">‹</a>{% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <a href="?page={{ num }}&q={{ q }}&category={{ category }}" class="page-link {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
+    {% endfor %}
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&q={{ q }}&category={{ category }}" class="page-link">›</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

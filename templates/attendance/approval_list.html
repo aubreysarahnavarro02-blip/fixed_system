@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Approval Requests — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Approval & Authorization{% endblock %}
+
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <select name="status" class="form-control" style="max-width:160px;">
+        <option value="">All Status</option>
+        {% for v,l in status_choices %}<option value="{{ v }}" {% if status_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <select name="type" class="form-control" style="max-width:180px;">
+        <option value="">All Types</option>
+        {% for v,l in type_choices %}<option value="{{ v }}" {% if type_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filter</button>
+      <a href="{% url 'approval_list' %}" class="btn btn-outline">Clear</a>
+      <a href="{% url 'approval_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-plus"></i> New Request</a>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>#</th><th>Type</th><th>Title</th><th>Requested By</th><th>Amount</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for req in page_obj %}
+        <tr>
+          <td class="text-muted" style="font-size:12px;">{{ forloop.counter }}</td>
+          <td><span style="font-size:11px; background:#eef0f4; padding:2px 8px; border-radius:10px;">{{ req.get_type_display }}</span></td>
+          <td style="font-weight:500;">{{ req.title }}</td>
+          <td>{{ req.requested_by.get_full_name|default:req.requested_by.username }}</td>
+          <td>{% if req.amount %}₱{{ req.amount|floatformat:2 }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          <td>
+            <span class="badge-status
+              {% if req.status == 'approved' %}status-completed
+              {% elif req.status == 'rejected' %}status-cancelled
+              {% elif req.status == 'pending' %}status-scheduled
+              {% else %}status-ongoing{% endif %}">
+              {{ req.get_status_display }}
+            </span>
+          </td>
+          <td style="font-size:12px; color:#888;">{{ req.created_at|date:"M d, Y" }}</td>
+          <td>
+            {% if req.status == 'pending' and user.profile.role in 'punong_barangay,admin' %}
+            <a href="{% url 'approval_action' req.pk %}" class="btn btn-sm btn-gold"><i class="fas fa-stamp"></i> Review</a>
+            {% else %}
+            <span class="text-muted" style="font-size:12px;">{{ req.get_status_display }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center; padding:40px; color:#888;"><i class="fas fa-inbox"></i> No approval requests found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <div class="card-body" style="border-top:1px solid #eef0f4; display:flex; gap:8px; justify-content:center;">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm btn-outline">‹ Prev</a>{% endif %}
+    <span style="padding:6px 12px; font-size:13px;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm btn-outline">Next ›</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Projects & Programs — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Projects & Programs{% endblock %}
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <select name="status" class="form-control" style="max-width:160px;">
+        <option value="">All Status</option>
+        {% for v,l in status_choices %}<option value="{{ v }}" {% if status_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <select name="category" class="form-control" style="max-width:180px;">
+        <option value="">All Categories</option>
+        {% for v,l in category_choices %}<option value="{{ v }}" {% if category_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filter</button>
+      <a href="{% url 'project_list' %}" class="btn btn-outline">Clear</a>
+      <a href="{% url 'project_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-plus"></i> Propose Project</a>
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Project Title</th><th>Category</th><th>Budget</th><th>Progress</th><th>Status</th><th>Committee</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for p in page_obj %}
+        <tr>
+          <td style="font-weight:500;">
+            <a href="{% url 'project_detail' p.pk %}" style="color:#0b1f3a; text-decoration:none;">{{ p.title }}</a>
+          </td>
+          <td style="font-size:12px;"><span style="background:#eef0f4; padding:2px 8px; border-radius:10px;">{{ p.get_category_display }}</span></td>
+          <td style="font-size:13px;">₱{{ p.budget_allocated|floatformat:2 }}</td>
+          <td style="min-width:120px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="background:#eef0f4; border-radius:8px; height:6px; flex:1; overflow:hidden;">
+                <div style="height:6px; border-radius:8px; width:{{ p.progress_percent }}%; background:{% if p.progress_percent >= 80 %}#10b981{% elif p.progress_percent >= 40 %}#f59e0b{% else %}#3b82f6{% endif %};"></div>
+              </div>
+              <span style="font-size:11px; color:#888;">{{ p.progress_percent }}%</span>
+            </div>
+          </td>
+          <td><span class="badge-status {% if p.status == 'completed' %}status-completed{% elif p.status == 'ongoing' %}status-ongoing{% elif p.status == 'cancelled' or p.status == 'suspended' %}status-cancelled{% else %}status-scheduled{% endif %}">{{ p.get_status_display }}</span></td>
+          <td style="font-size:12px; color:#888;">{{ p.committee_in_charge|default:"—" }}</td>
+          <td>
+            <a href="{% url 'project_detail' p.pk %}" class="btn btn-sm btn-outline">View</a>
+            {% if user.profile.role in 'punong_barangay,admin' %}
+            <a href="{% url 'project_approve' p.pk %}" class="btn btn-sm btn-gold">Update</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center; padding:40px; color:#888;"><i class="fas fa-diagram-project"></i> No projects found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Financial Records — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Revenue & Expense Records{% endblock %}
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <select name="type" class="form-control" style="max-width:160px;">
+        <option value="">All Types</option>
+        {% for v,l in type_choices %}<option value="{{ v }}" {% if type_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <select name="status" class="form-control" style="max-width:180px;">
+        <option value="">All Status</option>
+        {% for v,l in status_choices %}<option value="{{ v }}" {% if status_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <select name="fund" class="form-control" style="max-width:160px;">
+        <option value="">All Funds</option>
+        {% for v,l in fund_choices %}<option value="{{ v }}" {% if fund_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filter</button>
+      <a href="{% url 'financial_list' %}" class="btn btn-outline">Clear</a>
+      <a href="{% url 'financial_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-plus"></i> Record Transaction</a>
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Fund</th><th>OR #</th><th>Payee</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for r in page_obj %}
+        <tr>
+          <td style="font-size:12px; color:#888;">{{ r.transaction_date|date:"M d, Y" }}</td>
+          <td><span style="font-size:11px; padding:2px 8px; border-radius:10px; background:{% if r.type == 'revenue' %}#d1fae5{% else %}#fee2e2{% endif %}; color:{% if r.type == 'revenue' %}#065f46{% else %}#991b1b{% endif %};">{{ r.get_type_display }}</span></td>
+          <td style="font-size:13px;">{{ r.description|truncatechars:40 }}</td>
+          <td style="font-size:12px;">{{ r.get_fund_display }}</td>
+          <td style="font-size:12px; color:#888;">{{ r.or_number|default:"—" }}</td>
+          <td style="font-size:12px;">{{ r.payee|default:"—" }}</td>
+          <td style="font-weight:600; color:{% if r.type == 'revenue' %}#10b981{% else %}#ef4444{% endif %};">₱{{ r.amount|floatformat:2 }}</td>
+          <td><span class="badge-status {% if r.status == 'disbursed' or r.status == 'approved' %}status-completed{% elif r.status == 'rejected' %}status-cancelled{% else %}status-scheduled{% endif %}">{{ r.get_status_display }}</span></td>
+          <td>
+            {% if r.status == 'pending' and user.profile.role in 'punong_barangay,admin' %}
+            <a href="{% url 'financial_approve' r.pk %}" class="btn btn-sm btn-gold">Approve</a>
+            {% else %}
+            <span class="text-muted" style="font-size:12px;">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" style="text-align:center; padding:40px; color:#888;"><i class="fas fa-receipt"></i> No records found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <div class="card-body" style="border-top:1px solid #eef0f4; display:flex; gap:8px; justify-content:center;">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm btn-outline">‹</a>{% endif %}
+    <span style="padding:6px 12px; font-size:13px;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm btn-outline">›</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

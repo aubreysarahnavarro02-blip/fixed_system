@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}{{ complaint.case_number }} — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Case: {{ complaint.case_number }}{% endblock %}
+{% block content %}
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:18px;">
+  <div>
+    <div class="card mb-16">
+      <div class="card-header">
+        <span class="card-title"><i class="fas fa-file-alt"></i> Case Details</span>
+        <span class="badge-status {% if complaint.status == 'resolved' %}status-completed{% elif complaint.status == 'filed' %}status-scheduled{% elif complaint.status in 'dismissed,escalated' %}status-cancelled{% else %}status-ongoing{% endif %}">{{ complaint.get_status_display }}</span>
+      </div>
+      <div class="card-body">
+        <table style="width:100%; font-size:13px;">
+          <tr><td style="width:150px; color:#888; padding:6px 0;">Case Number</td><td><strong>{{ complaint.case_number }}</strong></td></tr>
+          <tr><td style="color:#888; padding:6px 0;">Type</td><td>{{ complaint.get_type_display }}</td></tr>
+          <tr><td style="color:#888; padding:6px 0;">Date Filed</td><td>{{ complaint.filed_date|date:"F d, Y" }}</td></tr>
+          <tr><td style="color:#888; padding:6px 0;">Complainant</td><td><strong>{{ complaint.complainant_name }}</strong></td></tr>
+          <tr><td style="color:#888; padding:6px 0;">Respondent</td><td><strong>{{ complaint.respondent_name }}</strong></td></tr>
+          <tr><td style="color:#888; padding:6px 0; vertical-align:top;">Narration</td><td style="line-height:1.7;">{{ complaint.description }}</td></tr>
+          {% if complaint.resolution_notes %}<tr><td style="color:#888; padding:6px 0; vertical-align:top;">Resolution</td><td>{{ complaint.resolution_notes }}</td></tr>{% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i class="fas fa-edit"></i> Update Case</span></div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label">Assign To</label>
+            <select name="assigned_to" class="form-control">
+              <option value="">— Unassigned —</option>
+              {% for o in officials %}<option value="{{ o.pk }}" {% if complaint.assigned_to == o %}selected{% endif %}>{{ o.get_full_name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-control">
+              {% for v,l in status_choices %}<option value="{{ v }}" {% if complaint.status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Resolution Notes</label>
+            <textarea name="resolution_notes" class="form-control" rows="4" placeholder="How was the case resolved?">{{ complaint.resolution_notes }}</textarea>
+          </div>
+          <button type="submit" class="btn btn-gold" style="width:100%;"><i class="fas fa-save"></i> Update Case</button>
+        </form>
+        <a href="{% url 'complaint_list' %}" class="btn btn-outline" style="width:100%; margin-top:8px;">← Back to List</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

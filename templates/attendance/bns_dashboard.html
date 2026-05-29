@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}BNS Dashboard — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Nutrition Scholar — Dashboard{% endblock %}
+{% block content %}
+<div class="stats-grid mb-24">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-weight-scale"></i></div>
+    <div><div class="stat-value">{{ total_monitored }}</div><div class="stat-label">Children Monitored</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#fee2e2; color:#ef4444;"><i class="fas fa-triangle-exclamation"></i></div>
+    <div><div class="stat-value">{{ malnourished }}</div><div class="stat-label">At-Risk / Malnourished</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-bowl-food"></i></div>
+    <div><div class="stat-value">{{ feeding_programs }}</div><div class="stat-label">Active Feeding Programs</div></div>
+  </div>
+</div>
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:18px;">
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-weight-scale"></i> Recent Nutrition Monitoring</span><a href="{% url 'nutrition_record_list' %}" class="btn btn-sm btn-outline">All</a></div>
+    <div class="card-body">
+      {% for r in recent_records %}
+      <div style="padding:8px 0; border-bottom:1px solid #eef0f4; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-weight:500; font-size:13px;">{{ r.citizen.full_name }}</div>
+          <div style="font-size:11px; color:#888;">{{ r.monitoring_date|date:"M d, Y" }}</div>
+        </div>
+        <span style="font-size:11px; padding:2px 8px; border-radius:10px; font-weight:600; background:{% if r.nutritional_status == 'normal' %}#d1fae5{% elif r.nutritional_status in 'underweight,severely_underweight' %}#fee2e2{% else %}#fef9c3{% endif %}; color:{% if r.nutritional_status == 'normal' %}#065f46{% elif r.nutritional_status in 'underweight,severely_underweight' %}#991b1b{% else %}#854d0e{% endif %};">{{ r.get_nutritional_status_display }}</span>
+      </div>
+      {% empty %}
+      <p style="text-align:center; color:#888; padding:20px 0;">No recent records.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-bolt"></i> Quick Actions</span></div>
+    <div class="card-body" style="display:grid; gap:10px;">
+      <a href="{% url 'nutrition_record_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Record Growth Data</a>
+      <a href="{% url 'feeding_program_create' %}" class="btn btn-gold"><i class="fas fa-bowl-food"></i> Add Feeding Program</a>
+      <a href="{% url 'nutrition_record_list' %}?status=underweight" class="btn btn-outline" style="border-color:#ef4444; color:#ef4444;"><i class="fas fa-triangle-exclamation"></i> View Underweight</a>
+      <a href="{% url 'feeding_program_list' %}" class="btn btn-outline"><i class="fas fa-list"></i> All Programs</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

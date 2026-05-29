@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% block title %}User Profile — {{ target_user.get_full_name|default:target_user.username }}{% endblock %}
+{% block page_title %}Edit User Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-layout { display: grid; grid-template-columns: 280px 1fr; gap: 24px; }
+  .avatar-circle {
+    width: 90px; height: 90px; border-radius: 50%;
+    background: linear-gradient(135deg,#0b1f3a,#1a3560);
+    color: #c8a94f; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; font-weight: 700; margin-bottom: 12px;
+  }
+  .avatar-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; display: block; margin: 0 auto 12px; }
+  .profile-name { font-family: 'Playfair Display',serif; font-size: 16px; color: #0b1f3a; font-weight: 700; }
+  .profile-role { display: inline-block; margin: 5px 0 8px; padding: 3px 12px; border-radius: 20px; background: rgba(200,169,79,0.15); color: #a08030; font-size: 11.5px; font-weight: 600; }
+  .profile-meta { font-size: 12px; color: #9aa3b5; display: flex; flex-direction: column; gap: 5px; }
+  .profile-meta span { display: flex; align-items: center; gap: 7px; justify-content: center; }
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #9aa3b5; margin-bottom: 8px; }
+  .breadcrumb a { color: #5a6478; text-decoration: none; }
+  .breadcrumb a:hover { color: #0b1f3a; }
+  .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .activity-action { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .act-login  { background:#d4f5e4; color:#1a7a45; }
+  .act-logout { background:#eef0f4; color:#5a6478; }
+  .act-failed { background:#fde8e8; color:#a61c1c; }
+  .act-other  { background:#dbeafe; color:#1e40af; }
+  @media (max-width: 900px) { .profile-layout { grid-template-columns: 1fr; } .form-grid-2 { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{% url 'user_list' %}"><i class="fas fa-users"></i> System Users</a>
+  <span>›</span>
+  <span>{{ target_user.get_full_name|default:target_user.username }}</span>
+</div>
+
+<div class="profile-layout">
+  <!-- Sidebar -->
+  <div>
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="card-body" style="text-align:center; padding: 24px 16px;">
+        {% if profile.avatar %}
+          <img src="{{ profile.avatar.url }}" class="avatar-img" alt="">
+        {% else %}
+          <div class="avatar-circle">
+            {{ target_user.first_name|first|upper }}{{ target_user.last_name|first|upper }}
+          </div>
+        {% endif %}
+        <div class="profile-name">{{ target_user.get_full_name|default:target_user.username }}</div>
+        <div class="profile-role">{{ profile.get_role_display }}</div>
+        <div class="profile-meta">
+          <span><i class="fas fa-at"></i> {{ target_user.username }}</span>
+          <span><i class="fas fa-calendar"></i> Joined {{ target_user.date_joined|date:"M d, Y" }}</span>
+          <span><i class="fas fa-clock"></i> Last login: {{ target_user.last_login|date:"M d, Y g:i A"|default:"Never" }}</span>
+        </div>
+      </div>
+    </div>
+    {% if target_user != request.user %}
+    <a href="{% url 'user_delete' target_user.pk %}" class="btn btn-danger btn-sm" style="width:100%;">
+      <i class="fas fa-trash"></i> Delete This User
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Main -->
+  <div style="display:flex; flex-direction:column; gap:20px;">
+    <!-- Edit Form -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fas fa-pen"></i> Update Profile</span>
+        <a href="{% url 'user_list' %}" class="btn btn-outline btn-sm">
+          <i class="fas fa-arrow-left"></i> Back
+        </a>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              {{ form.first_name }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              {{ form.last_name }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              {{ form.email }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Role</label>
+              {{ form.role }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Number</label>
+              {{ form.contact_number }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Position</label>
+              {{ form.position }}
+            </div>
+            <div class="form-group" style="grid-column: 1/-1;">
+              <label class="form-label">Profile Photo</label>
+              {{ form.avatar }}
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:12px;">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-floppy-disk"></i> Save
+            </button>
+            <a href="{% url 'user_list' %}" class="btn btn-outline">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Activity Log -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fas fa-clock-rotate-left"></i> Activity Log</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Action</th><th>IP Address</th><th>When</th></tr>
+            </thead>
+            <tbody>
+              {% for a in activities %}
+              <tr>
+                <td>
+                  {% if a.action == 'login' %}<span class="activity-action act-login">Login</span>
+                  {% elif a.action == 'logout' %}<span class="activity-action act-logout">Logout</span>
+                  {% elif a.action == 'failed' %}<span class="activity-action act-failed">Failed</span>
+                  {% else %}<span class="activity-action act-other">{{ a.get_action_display }}</span>{% endif %}
+                </td>
+                <td><code style="font-size:12px; color:#5a6478;">{{ a.ip_address|default:"—" }}</code></td>
+                <td style="font-size:12.5px; color:#9aa3b5;">{{ a.timestamp|date:"M d, Y g:i A" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" style="text-align:center; color:#9aa3b5; padding:24px 0; font-size:13px;">No activity yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

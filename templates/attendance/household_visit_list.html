@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Household Visits — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Household Visit Records{% endblock %}
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-size:14px; color:#888;"><i class="fas fa-house-medical"></i> Logged household visits</span>
+    <a href="{% url 'household_visit_create' %}" class="btn btn-gold"><i class="fas fa-plus"></i> Log Visit</a>
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Resident</th><th>Purpose</th><th>Visit Date</th><th>Findings</th><th>Next Visit</th><th>Visitor</th></tr></thead>
+      <tbody>
+        {% for v in page_obj %}
+        <tr>
+          <td style="font-weight:500;">{{ v.citizen.full_name }}</td>
+          <td style="font-size:12px;"><span style="background:#eef0f4; padding:2px 8px; border-radius:10px;">{{ v.get_purpose_display }}</span></td>
+          <td style="font-size:12px;">{{ v.visit_date|date:"M d, Y" }}</td>
+          <td style="font-size:12px; color:#555;">{{ v.findings|truncatechars:45|default:"—" }}</td>
+          <td style="font-size:12px; {% if v.next_visit_date %}color:#f59e0b;{% else %}color:#888;{% endif %}">{{ v.next_visit_date|date:"M d, Y"|default:"—" }}</td>
+          <td style="font-size:12px; color:#888;">{{ v.visitor.get_full_name|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center; padding:40px; color:#888;"><i class="fas fa-house-medical"></i> No visits logged.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}{{ session.title }} — Brgy. San Jose{% endblock %}
+{% block page_title %}Session Detail{% endblock %}
+
+{% block extra_css %}
+<style>
+  .attendance-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+  .att-stat { text-align: center; padding: 14px; border-radius: 8px; }
+  .att-stat .num { font-size: 26px; font-weight: 700; font-family: 'Playfair Display', serif; }
+  .att-stat .lbl { font-size: 11px; margin-top: 2px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display:flex; gap:16px; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
+  <a href="{% url 'session_list' %}" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back</a>
+  {% if request.user.profile.role in 'admin,secretary,kagawad,staff' %}
+  <a href="{% url 'mark_attendance' session.pk %}" class="btn btn btn-primary btn-sm"><i class="fas fa-check-square"></i> Mark Attendance</a>
+  <a href="{% url 'session_edit' session.pk %}" class="btn btn-outline btn-sm"><i class="fas fa-pen"></i> Edit</a>
+  {% endif %}
+  <a href="{% url 'pdf_report' session.pk %}" class="btn btn-gold btn-sm" target="_blank"><i class="fas fa-print"></i> Print Report</a>
+  <a href="{% url 'export_csv' session.pk %}" class="btn btn-outline btn-sm"><i class="fas fa-file-csv"></i> Export CSV</a>
+</div>
+
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+  <div>
+    <div class="card mb-16">
+      <div class="card-header">
+        <span class="card-title">{{ session.title }}</span>
+        <span class="badge badge-{{ session.status }}">{{ session.get_status_display }}</span>
+      </div>
+      <div class="card-body">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div><div class="form-label">Session Type</div><div>{{ session.get_session_type_display }}</div></div>
+          <div><div class="form-label">Date</div><div>{{ session.date|date:"F d, Y" }}</div></div>
+          <div><div class="form-label">Time</div><div>{{ session.start_time|time:"g:i A" }}{% if session.end_time %} – {{ session.end_time|time:"g:i A" }}{% endif %}</div></div>
+          <div><div class="form-label">Hall / Venue</div><div>{{ session.hall.name|default:"—" }}</div></div>
+          {% if session.presided_by %}
+          <div><div class="form-label">Presided By</div><div>{{ session.presided_by }}</div></div>
+          {% endif %}
+        </div>
+        {% if session.agenda %}
+        <div class="mt-16">
+          <div class="form-label">Agenda</div>
+          <div style="background:#f8f9fb; padding:12px; border-radius:6px; font-size:13.5px; line-height:1.6;">{{ session.agenda|linebreaks }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Attendance Table -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Attendance Records</span>
+        <span class="text-muted" style="font-size:12px;">{{ attendance_records.count }} total</span>
+      </div>
+      <div class="attendance-stats">
+        <div class="att-stat" style="background:#d4f5e4;">
+          <div class="num" style="color:#155934;">{{ present_count }}</div>
+          <div class="lbl" style="color:#1a7a45;">Present</div>
+        </div>
+        <div class="att-stat" style="background:#fef3cd;">
+          <div class="num" style="color:#856404;">{{ late_count }}</div>
+          <div class="lbl" style="color:#7c4f00;">Late</div>
+        </div>
+        <div class="att-stat" style="background:#fde8e8;">
+          <div class="num" style="color:#a61c1c;">{{ absent_count }}</div>
+          <div class="lbl" style="color:#a61c1c;">Absent</div>
+        </div>
+        <div class="att-stat" style="background:#dbeafe;">
+          <div class="num" style="color:#1e40af;">{{ excused_count }}</div>
+          <div class="lbl" style="color:#1e40af;">Excused</div>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Citizen</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Time In</th>
+              <th>Time Out</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rec in attendance_records %}
+            <tr>
+              <td class="text-muted" style="font-size:12px;">{{ forloop.counter }}</td>
+              <td>
+                <a href="{% url 'citizen_detail' rec.citizen.pk %}" style="color:#0b1f3a; font-weight:500; text-decoration:none;">
+                  {{ rec.citizen.full_name }}
+                </a>
+              </td>
+              <td class="text-muted">{{ rec.citizen.get_category_display }}</td>
+              <td><span class="badge badge-{{ rec.status }}">{{ rec.get_status_display }}</span></td>
+              <td class="text-muted">{{ rec.time_in|time:"g:i A"|default:"—" }}</td>
+              <td class="text-muted">{{ rec.time_out|time:"g:i A"|default:"—" }}</td>
+              <td class="text-muted">{{ rec.remarks|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" style="text-align:center; padding:24px; color:#9aa3b5;">
+                No attendance records yet. <a href="{% url 'mark_attendance' session.pk %}">Mark attendance</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Session Info</span></div>
+      <div class="card-body">
+        <div style="font-size:12.5px; line-height:2; color:#5a6478;">
+          <div><i class="fas fa-user-tie" style="width:16px;"></i> Created by: <strong>{{ session.created_by.get_full_name|default:"—" }}</strong></div>
+          <div><i class="fas fa-clock" style="width:16px;"></i> Created: {{ session.created_at|date:"M d, Y" }}</div>
+          <div><i class="fas fa-edit" style="width:16px;"></i> Updated: {{ session.updated_at|date:"M d, Y" }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% block title %}System Users — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}System Users{% endblock %}
+
+{% block extra_css %}
+<style>
+  .user-table { width: 100%; border-collapse: collapse; }
+  .user-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #9aa3b5;
+    padding: 10px 14px;
+    border-bottom: 1px solid #eef0f4;
+    background: #f8f9fb;
+  }
+  .user-table td {
+    padding: 12px 14px;
+    font-size: 13.5px;
+    border-bottom: 1px solid #eef0f4;
+    vertical-align: middle;
+    color: #1e2b3c;
+  }
+  .user-table tbody tr:last-child td { border-bottom: none; }
+  .user-table tbody tr:hover td { background: #f8f9fb; }
+  .user-avatar-cell { display: flex; align-items: center; gap: 10px; }
+  .user-initials {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0b1f3a, #1a3560);
+    color: #c8a94f;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    flex-shrink: 0; letter-spacing: 0.5px;
+  }
+  .user-avatar-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .user-name { font-weight: 600; font-size: 13.5px; color: #1e2b3c; }
+  .user-handle { font-size: 11.5px; color: #9aa3b5; }
+  .role-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .role-admin     { background: #fee2e2; color: #991b1b; }
+  .role-punong    { background: #dbeafe; color: #1e40af; }
+  .role-secretary { background: #ede9fe; color: #5b21b6; }
+  .role-kagawad   { background: #d1fae5; color: #065f46; }
+  .role-treasurer { background: #fef3c7; color: #92400e; }
+  .role-tanod     { background: #fce7f3; color: #9d174d; }
+  .role-bhw       { background: #ecfdf5; color: #065f46; }
+  .role-bns       { background: #f0fdf4; color: #166534; }
+  .role-other     { background: #eef0f4; color: #5a6478; }
+  .action-btns { display: flex; gap: 6px; }
+  .btn-icon {
+    width: 30px; height: 30px; border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; border: 1.5px solid #e0e5ef; color: #5a6478;
+    background: white; text-decoration: none; transition: all 0.15s;
+  }
+  .btn-icon:hover { border-color: #0b1f3a; color: #0b1f3a; background: #f8f9fb; }
+  .btn-icon.danger:hover { border-color: #e74c3c; color: #e74c3c; }
+  .search-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .search-bar input, .search-bar select {
+    padding: 8px 12px; border: 1.5px solid #e0e5ef; border-radius: 8px;
+    font-size: 13px; font-family: 'DM Sans', sans-serif; color: #1e2b3c;
+    background: white; outline: none; transition: border-color 0.2s;
+  }
+  .search-bar input:focus, .search-bar select:focus { border-color: #1a3560; }
+  .search-bar input { min-width: 200px; }
+  .pagination-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; border-top: 1px solid #eef0f4;
+    font-size: 12.5px; color: #9aa3b5;
+  }
+  .page-links { display: flex; gap: 4px; }
+  .page-link {
+    padding: 4px 10px; border: 1.5px solid #e0e5ef; border-radius: 6px;
+    font-size: 12px; color: #1e2b3c; text-decoration: none; background: white;
+  }
+  .page-link:hover { border-color: #0b1f3a; background: #f8f9fb; }
+  .empty-state { text-align: center; padding: 50px 20px; color: #9aa3b5; font-size: 13.5px; }
+  .empty-state i { font-size: 32px; margin-bottom: 12px; display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card mb-24">
+  <div class="card-header">
+    <span class="card-title">
+      <i class="fas fa-users"></i> System Users
+      <span style="font-size:12px; color:#9aa3b5; font-weight:400; margin-left:8px;">{{ page_obj.paginator.count }} total</span>
+    </span>
+    <div style="display:flex; gap:8px;">
+      <a href="{% url 'login_activity_log' %}" class="btn btn-outline btn-sm">
+        <i class="fas fa-clock-rotate-left"></i> Activity Log
+      </a>
+      <a href="{% url 'register_user' %}" class="btn btn-primary btn-sm">
+        <i class="fas fa-user-plus"></i> Add User
+      </a>
+    </div>
+  </div>
+  <div class="card-body" style="padding: 14px 20px; border-bottom: 1px solid #eef0f4;">
+    <form method="get" class="search-bar">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search by name or username…">
+      <select name="role">
+        <option value="">All Roles</option>
+        {% for code, label in role_choices %}
+          <option value="{{ code }}" {% if role == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary btn-sm">
+        <i class="fas fa-magnifying-glass"></i> Search
+      </button>
+      {% if q or role %}
+      <a href="{% url 'user_list' %}" class="btn btn-outline btn-sm">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+  <div class="card-body" style="padding: 0;">
+    <div style="overflow-x: auto;">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Position</th>
+            <th>Email</th>
+            <th>Date Joined</th>
+            <th>Last Login</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in page_obj %}
+          <tr>
+            <td>
+              <div class="user-avatar-cell">
+                {% if u.profile.avatar %}
+                  <img src="{{ u.profile.avatar.url }}" class="user-avatar-img" alt="">
+                {% else %}
+                  <div class="user-initials">
+                    {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                  </div>
+                {% endif %}
+                <div>
+                  <div class="user-name">{{ u.get_full_name|default:u.username }}</div>
+                  <div class="user-handle">@{{ u.username }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              {% with role=u.profile.role %}
+              <span class="role-badge
+                {% if role == 'admin' %}role-admin
+                {% elif role == 'punong_barangay' %}role-punong
+                {% elif role == 'secretary' %}role-secretary
+                {% elif role == 'kagawad' or role == 'sb_chairperson' %}role-kagawad
+                {% elif role == 'treasurer' %}role-treasurer
+                {% elif role == 'tanod' %}role-tanod
+                {% elif role == 'bhw' %}role-bhw
+                {% elif role == 'bns' %}role-bns
+                {% else %}role-other{% endif %}">
+                {{ u.profile.get_role_display }}
+              </span>
+              {% endwith %}
+            </td>
+            <td style="color:#5a6478;">{{ u.profile.position|default:"—" }}</td>
+            <td style="color:#5a6478; font-size:12.5px;">{{ u.email|default:"—" }}</td>
+            <td style="color:#9aa3b5; font-size:12px;">{{ u.date_joined|date:"M d, Y" }}</td>
+            <td style="color:#9aa3b5; font-size:12px;">{{ u.last_login|date:"M d, Y g:i A"|default:"Never" }}</td>
+            <td>
+              <div class="action-btns">
+                <a href="{% url 'user_profile_view' u.pk %}" class="btn-icon" title="View / Edit">
+                  <i class="fas fa-pen"></i>
+                </a>
+                {% if u != request.user %}
+                <a href="{% url 'user_delete' u.pk %}" class="btn-icon danger" title="Delete">
+                  <i class="fas fa-trash"></i>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <i class="fas fa-users-slash"></i>
+                No users found{% if q or role %} matching your filters{% endif %}.
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-row">
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      <nav class="page-links">
+        {% if page_obj.has_previous %}
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&role={{ role }}">‹ Prev</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&role={{ role }}">Next ›</a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

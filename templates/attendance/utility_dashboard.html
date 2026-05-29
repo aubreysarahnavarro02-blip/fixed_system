@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Utility Dashboard — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Utility / Admin Staff — Task Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .task-card { border-left: 4px solid #e5e7eb; padding: 14px 16px; background: #f9fafb; border-radius: 8px; margin-bottom: 10px; }
+  .task-card.urgent  { border-left-color: #ef4444; }
+  .task-card.high    { border-left-color: #f59e0b; }
+  .task-card.normal  { border-left-color: #3b82f6; }
+  .task-card.low     { border-left-color: #10b981; }
+  .low-stock-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eef0f4; font-size:13px; }
+  .low-stock-row:last-child { border-bottom:none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Banner -->
+<div class="card mb-24" style="background:linear-gradient(135deg,#0b1f3a,#1e3a5f); color:white;">
+  <div class="card-body" style="padding:20px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <div>
+      <div style="font-size:18px; font-weight:700;"><i class="fas fa-screwdriver-wrench"></i> Operations Dashboard</div>
+      <div style="font-size:13px; opacity:.8; margin-top:3px;">{{ today|date:"l, F d, Y" }}</div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a href="{% url 'task_list' %}" class="btn" style="background:rgba(255,255,255,0.15); color:white; border:1px solid rgba(255,255,255,0.3);">
+        <i class="fas fa-list-check"></i> My Tasks
+      </a>
+      <a href="{% url 'daily_log_create' %}" class="btn btn-gold">
+        <i class="fas fa-clock"></i> Log Today
+      </a>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:18px; margin-bottom:18px;">
+  <!-- My Assigned Tasks -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-list-check"></i> My Active Tasks</span>
+      <a href="{% url 'task_list' %}" class="btn btn-sm btn-outline">View All</a>
+    </div>
+    <div class="card-body">
+      {% for task in my_tasks %}
+      <div class="task-card {{ task.priority }}">
+        <div style="display:flex; justify-content:space-between; align-items:start;">
+          <div style="flex:1;">
+            <div style="font-weight:600; font-size:13px; margin-bottom:4px;">{{ task.title }}</div>
+            {% if task.location %}<div style="font-size:11px; color:#888;"><i class="fas fa-location-dot"></i> {{ task.location }}</div>{% endif %}
+            {% if task.due_date %}<div style="font-size:11px; color:{% if task.due_date < today %}#ef4444{% else %}#888{% endif %};"><i class="fas fa-calendar"></i> Due: {{ task.due_date|date:"M d, Y" }}</div>{% endif %}
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+            <span style="font-size:10px; padding:2px 8px; border-radius:10px; background:{% if task.priority == 'urgent' %}#fee2e2{% elif task.priority == 'high' %}#fef9c3{% elif task.priority == 'normal' %}#dbeafe{% else %}#dcfce7{% endif %}; color:{% if task.priority == 'urgent' %}#991b1b{% elif task.priority == 'high' %}#854d0e{% elif task.priority == 'normal' %}#1e40af{% else %}#166534{% endif %}; font-weight:600; text-transform:uppercase;">{{ task.get_priority_display }}</span>
+            <form method="post" action="{% url 'task_update_status' task.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="status" value="completed">
+              <button type="submit" class="btn btn-sm btn-gold" style="font-size:11px; padding:4px 10px;"><i class="fas fa-check"></i> Done</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div style="text-align:center; padding:30px 0; color:#888;">
+        <i class="fas fa-check-circle" style="font-size:36px; color:#10b981;"></i>
+        <p style="margin-top:10px; font-size:13px;">All tasks complete! Great work.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div style="display:flex; flex-direction:column; gap:18px;">
+    <!-- Daily Log Status -->
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i class="fas fa-clock"></i> Today's Log</span></div>
+      <div class="card-body">
+        {% if today_log %}
+        <div style="padding:10px; background:#f0fdf4; border-radius:8px; border:1px solid #bbf7d0; margin-bottom:12px;">
+          <div style="font-size:12px; color:#166534; font-weight:600;"><i class="fas fa-check-circle"></i> Log submitted for today</div>
+          {% if today_log.time_in %}<div style="font-size:11px; color:#888; margin-top:4px;">Time In: {{ today_log.time_in }}</div>{% endif %}
+          {% if today_log.time_out %}<div style="font-size:11px; color:#888;">Time Out: {{ today_log.time_out }}</div>{% endif %}
+        </div>
+        {% else %}
+        <div style="padding:10px; background:#fff3cd; border-radius:8px; border:1px solid #fde68a; margin-bottom:12px;">
+          <div style="font-size:12px; color:#856404;"><i class="fas fa-exclamation-circle"></i> No log submitted yet today.</div>
+        </div>
+        {% endif %}
+        <a href="{% url 'daily_log_create' %}" class="btn btn-outline" style="width:100%; font-size:12px;">
+          <i class="fas fa-edit"></i> {% if today_log %}Update Log{% else %}Submit Daily Log{% endif %}
+        </a>
+      </div>
+    </div>
+
+    <!-- Low Stock Alert -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fas fa-boxes-stacked"></i> Low Stock Alert</span>
+        <a href="{% url 'inventory_list' %}" class="btn btn-sm btn-outline">Inventory</a>
+      </div>
+      <div class="card-body">
+        {% for item in low_stock %}
+        <div class="low-stock-row">
+          <span>{{ item.name }}</span>
+          <span style="color:#ef4444; font-weight:600;">{{ item.quantity }} {{ item.unit }}</span>
+        </div>
+        {% empty %}
+        <div style="text-align:center; color:#888; font-size:13px; padding:16px 0;">
+          <i class="fas fa-check-circle" style="color:#10b981;"></i> All stock levels OK.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i class="fas fa-bolt"></i> Quick Actions</span></div>
+      <div class="card-body" style="display:grid; gap:8px;">
+        <a href="{% url 'inventory_list' %}" class="btn btn-outline"><i class="fas fa-boxes-stacked"></i> View Inventory</a>
+        <a href="{% url 'inventory_create' %}" class="btn btn-outline"><i class="fas fa-plus"></i> Add Supply</a>
+        <a href="{% url 'hall_list' %}" class="btn btn-outline"><i class="fas fa-building"></i> Hall Status</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

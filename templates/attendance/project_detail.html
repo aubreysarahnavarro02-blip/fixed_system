@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}{{ project.title }} — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Project Details{% endblock %}
+{% block content %}
+<div class="card" style="max-width:820px; margin:0 auto;">
+  <div class="card-header">
+    <span class="card-title">{{ project.title }}</span>
+    <span class="badge-status {% if project.status == 'completed' %}status-completed{% elif project.status == 'ongoing' %}status-ongoing{% elif project.status in 'cancelled,suspended' %}status-cancelled{% else %}status-scheduled{% endif %}">{{ project.get_status_display }}</span>
+  </div>
+  <div class="card-body">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:20px;">
+      <div>
+        <div style="font-size:12px; color:#888; margin-bottom:2px;">Category</div>
+        <div style="font-weight:500;">{{ project.get_category_display }}</div>
+      </div>
+      <div>
+        <div style="font-size:12px; color:#888; margin-bottom:2px;">Committee</div>
+        <div>{{ project.committee_in_charge|default:"—" }}</div>
+      </div>
+      <div>
+        <div style="font-size:12px; color:#888; margin-bottom:2px;">Budget Allocated</div>
+        <div style="font-weight:500; color:#0b1f3a;">₱{{ project.budget_allocated|floatformat:2 }}</div>
+      </div>
+      <div>
+        <div style="font-size:12px; color:#888; margin-bottom:2px;">Budget Used</div>
+        <div style="color:#ef4444;">₱{{ project.budget_used|floatformat:2 }}</div>
+      </div>
+      <div>
+        <div style="font-size:12px; color:#888; margin-bottom:2px;">Start Date</div>
+        <div>{{ project.start_date|date:"F d, Y"|default:"TBD" }}</div>
+      </div>
+      <div>
+        <div style="font-size:12px; color:#888; margin-bottom:2px;">End Date</div>
+        <div>{{ project.end_date|date:"F d, Y"|default:"TBD" }}</div>
+      </div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <div style="font-size:12px; color:#888; margin-bottom:6px;">Progress</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="flex:1; background:#eef0f4; border-radius:8px; height:10px; overflow:hidden;">
+          <div style="height:10px; border-radius:8px; width:{{ project.progress_percent }}%; background:{% if project.progress_percent >= 80 %}#10b981{% elif project.progress_percent >= 40 %}#f59e0b{% else %}#3b82f6{% endif %};"></div>
+        </div>
+        <span style="font-weight:600;">{{ project.progress_percent }}%</span>
+      </div>
+    </div>
+    <div style="background:#f9fafb; border:1px solid #eef0f4; border-radius:8px; padding:16px; font-size:13px; line-height:1.7; margin-bottom:20px;">
+      {{ project.description }}
+    </div>
+    <div style="display:flex; gap:10px;">
+      {% if user.profile.role in 'punong_barangay,admin' %}
+      <a href="{% url 'project_approve' project.pk %}" class="btn btn-gold"><i class="fas fa-edit"></i> Update Status</a>
+      {% endif %}
+      <a href="{% url 'project_list' %}" class="btn btn-outline">← Back</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

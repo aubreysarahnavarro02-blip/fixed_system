@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Review Request — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Review Approval Request{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px; margin:0 auto;">
+  <div class="card-header"><span class="card-title"><i class="fas fa-stamp"></i> Review: {{ req.title }}</span></div>
+  <div class="card-body">
+    <table style="width:100%; font-size:14px; margin-bottom:20px;">
+      <tr><td style="width:140px; color:#888; padding:6px 0;">Type</td><td><strong>{{ req.get_type_display }}</strong></td></tr>
+      <tr><td style="color:#888; padding:6px 0;">Requested By</td><td>{{ req.requested_by.get_full_name }}</td></tr>
+      <tr><td style="color:#888; padding:6px 0;">Date Filed</td><td>{{ req.created_at|date:"F d, Y g:i A" }}</td></tr>
+      {% if req.amount %}<tr><td style="color:#888; padding:6px 0;">Amount</td><td><strong style="color:#0b1f3a;">₱{{ req.amount|floatformat:2 }}</strong></td></tr>{% endif %}
+      <tr><td style="color:#888; padding:6px 0; vertical-align:top;">Description</td><td>{{ req.description }}</td></tr>
+    </table>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Review Notes / Remarks</label>
+        <textarea name="review_notes" class="form-control" rows="3" placeholder="Add notes or reason for your decision..."></textarea>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button name="action" value="approved" class="btn btn-gold"><i class="fas fa-check"></i> Approve</button>
+        <button name="action" value="returned" class="btn btn-outline"><i class="fas fa-undo"></i> Return for Revision</button>
+        <button name="action" value="rejected" class="btn" style="background:#ef4444; color:white;"><i class="fas fa-times"></i> Reject</button>
+        <a href="{% url 'approval_list' %}" class="btn btn-outline" style="margin-left:auto;">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Inventory — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Inventory & Supplies{% endblock %}
+
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <select name="category" class="form-control" style="max-width:180px;">
+        <option value="">All Categories</option>
+        {% for v,l in category_choices %}<option value="{{ v }}" {% if category_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+        <input type="checkbox" name="low_stock" value="1" {% if low_stock_only %}checked{% endif %}> Low Stock Only
+      </label>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filter</button>
+      <a href="{% url 'inventory_list' %}" class="btn btn-outline">Clear</a>
+      {% if user.profile.role in 'punong_barangay,admin,secretary,treasurer' %}
+      <a href="{% url 'inventory_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-plus"></i> Add Item</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Item Name</th>
+          <th>Category</th>
+          <th>Quantity</th>
+          <th>Unit</th>
+          <th>Min. Stock</th>
+          <th>Status</th>
+          <th>Location</th>
+          <th>Last Restocked</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr {% if item.is_low_stock %}style="background:#fff5f5;"{% endif %}>
+          <td style="font-weight:500;">
+            {{ item.name }}
+            {% if item.is_low_stock %}<span style="font-size:10px; background:#fee2e2; color:#991b1b; padding:1px 6px; border-radius:10px; margin-left:6px; font-weight:600;">LOW</span>{% endif %}
+          </td>
+          <td><span style="font-size:11px; background:#eef0f4; padding:2px 8px; border-radius:10px;">{{ item.get_category_display }}</span></td>
+          <td style="font-weight:600; font-size:15px; {% if item.is_low_stock %}color:#ef4444;{% else %}color:#0b1f3a;{% endif %}">{{ item.quantity }}</td>
+          <td style="font-size:12px; color:#888;">{{ item.unit }}</td>
+          <td style="font-size:12px; color:#888;">{{ item.minimum_stock }}</td>
+          <td>
+            {% if item.is_low_stock %}
+            <span class="badge-status status-cancelled">Low Stock</span>
+            {% else %}
+            <span class="badge-status status-completed">Sufficient</span>
+            {% endif %}
+          </td>
+          <td style="font-size:12px; color:#888;">{{ item.location|default:"—" }}</td>
+          <td style="font-size:12px; color:#888;">{{ item.last_restocked|date:"M d, Y"|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center; padding:40px; color:#888;">
+          <i class="fas fa-boxes-stacked" style="font-size:32px; opacity:.3;"></i>
+          <p style="margin-top:10px;">No inventory items found.</p>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

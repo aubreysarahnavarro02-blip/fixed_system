@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Halls & Venues — Brgy. San Jose{% endblock %}
+{% block page_title %}Halls & Venues{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-12 mb-16" style="justify-content:flex-end;">
+  {% if request.user.profile.role in 'admin,secretary' %}
+  <a href="{% url 'hall_create' %}" class="btn btn-gold"><i class="fas fa-plus"></i> Add Hall</a>
+  {% endif %}
+</div>
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:16px;">
+  {% for hall in halls %}
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title" style="font-size:15px;">{{ hall.name }}</span>
+      <span class="badge badge-{{ hall.status }}">{{ hall.get_status_display }}</span>
+    </div>
+    <div class="card-body">
+      <div style="font-size:13px; line-height:2; color:#5a6478;">
+        <div><i class="fas fa-map-marker-alt" style="width:18px; color:#c8a94f;"></i> {{ hall.location }}</div>
+        <div><i class="fas fa-users" style="width:18px; color:#c8a94f;"></i> Capacity: <strong style="color:#0b1f3a;">{{ hall.capacity }}</strong></div>
+        {% if hall.description %}<div style="margin-top:8px; font-size:12.5px;">{{ hall.description }}</div>{% endif %}
+      </div>
+      {% if request.user.profile.role in 'admin,secretary' %}
+      <div class="d-flex gap-8 mt-16">
+        <a href="{% url 'hall_edit' hall.pk %}" class="btn btn-outline btn-sm"><i class="fas fa-pen"></i> Edit</a>
+        <a href="{% url 'hall_delete' hall.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="card" style="grid-column:1/-1;">
+    <div class="card-body" style="text-align:center; padding:40px; color:#9aa3b5;">
+      <i class="fas fa-building" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+      No halls/venues added yet.
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Tasks — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Task Management{% endblock %}
+
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <select name="status" class="form-control" style="max-width:180px;">
+        <option value="">All Status</option>
+        {% for v,l in status_choices %}<option value="{{ v }}" {% if status_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filter</button>
+      <a href="{% url 'task_list' %}" class="btn btn-outline">Clear</a>
+      {% if user.profile.role in 'punong_barangay,admin,secretary' %}
+      <a href="{% url 'task_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-plus"></i> Assign Task</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Task Title</th>
+          <th>Priority</th>
+          <th>Assigned To</th>
+          <th>Location</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in page_obj %}
+        <tr>
+          <td>
+            <div style="font-weight:500;">{{ task.title }}</div>
+            {% if task.description %}<div style="font-size:11px; color:#888; margin-top:2px;">{{ task.description|truncatechars:50 }}</div>{% endif %}
+          </td>
+          <td>
+            <span style="font-size:11px; padding:3px 9px; border-radius:10px; font-weight:600;
+              background:{% if task.priority == 'urgent' %}#fee2e2{% elif task.priority == 'high' %}#fef9c3{% elif task.priority == 'normal' %}#dbeafe{% else %}#dcfce7{% endif %};
+              color:{% if task.priority == 'urgent' %}#991b1b{% elif task.priority == 'high' %}#854d0e{% elif task.priority == 'normal' %}#1e40af{% else %}#166534{% endif %};">
+              {{ task.get_priority_display }}
+            </span>
+          </td>
+          <td style="font-size:13px;">{{ task.assigned_to.get_full_name|default:"Unassigned" }}</td>
+          <td style="font-size:12px; color:#888;">{{ task.location|default:"—" }}</td>
+          <td style="font-size:12px;
+            {% if task.due_date and task.due_date < today and task.status != 'completed' %}color:#ef4444; font-weight:600;{% else %}color:#888;{% endif %}">
+            {{ task.due_date|date:"M d, Y"|default:"—" }}
+          </td>
+          <td>
+            <span class="badge-status
+              {% if task.status == 'completed' %}status-completed
+              {% elif task.status == 'in_progress' %}status-ongoing
+              {% elif task.status == 'cancelled' %}status-cancelled
+              {% else %}status-scheduled{% endif %}">
+              {{ task.get_status_display }}
+            </span>
+          </td>
+          <td>
+            {% if task.status != 'completed' and task.status != 'cancelled' %}
+            <form method="post" action="{% url 'task_update_status' task.pk %}" style="display:inline;">
+              {% csrf_token %}
+              {% if task.status == 'pending' %}
+              <input type="hidden" name="status" value="in_progress">
+              <button type="submit" class="btn btn-sm btn-outline"><i class="fas fa-play"></i> Start</button>
+              {% elif task.status == 'in_progress' %}
+              <input type="hidden" name="status" value="completed">
+              <button type="submit" class="btn btn-sm btn-gold"><i class="fas fa-check"></i> Done</button>
+              {% endif %}
+            </form>
+            {% else %}
+            <span style="font-size:11px; color:#888;">{{ task.get_status_display }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center; padding:40px; color:#888;">
+          <i class="fas fa-list-check" style="font-size:32px; opacity:.3;"></i>
+          <p style="margin-top:10px;">No tasks found.</p>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <div class="card-body" style="border-top:1px solid #eef0f4; display:flex; gap:8px; justify-content:center; padding:12px;">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm btn-outline">‹ Prev</a>{% endif %}
+    <span style="padding:6px 14px; font-size:13px; color:#555;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm btn-outline">Next ›</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

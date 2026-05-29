@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Health Records — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Resident Health Records{% endblock %}
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <input type="text" name="q" value="{{ q }}" class="form-control" style="max-width:220px;" placeholder="Search resident...">
+      <select name="condition" class="form-control" style="max-width:180px;">
+        <option value="">All Conditions</option>
+        {% for v,l in condition_choices %}<option value="{{ v }}" {% if condition_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i> Search</button>
+      <a href="{% url 'health_record_list' %}" class="btn btn-outline">Clear</a>
+      <a href="{% url 'health_record_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-plus"></i> New Record</a>
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Resident</th><th>Condition</th><th>Blood Type</th><th>Last Checkup</th><th>Next Checkup</th><th>BHW</th></tr></thead>
+      <tbody>
+        {% for r in page_obj %}
+        <tr>
+          <td style="font-weight:500;">{{ r.citizen.full_name }}</td>
+          <td><span class="badge-status {% if r.condition == 'healthy' %}status-completed{% elif r.condition == 'critical' %}status-cancelled{% elif r.condition == 'monitored' %}status-ongoing{% else %}status-scheduled{% endif %}">{{ r.get_condition_display }}</span></td>
+          <td style="font-size:13px;">{{ r.blood_type|default:"—" }}</td>
+          <td style="font-size:12px; color:#888;">{{ r.last_checkup|date:"M d, Y"|default:"—" }}</td>
+          <td style="font-size:12px; {% if r.next_checkup %}color:#f59e0b;{% else %}color:#888;{% endif %}">{{ r.next_checkup|date:"M d, Y"|default:"—" }}</td>
+          <td style="font-size:12px; color:#888;">{{ r.bhw.get_full_name|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center; padding:40px; color:#888;"><i class="fas fa-notes-medical"></i> No health records found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

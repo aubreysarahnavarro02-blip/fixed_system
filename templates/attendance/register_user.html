@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Register User — Brgy. San Jose{% endblock %}
+{% block page_title %}Register System User{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-12 mb-16">
+  <a href="{% url 'user_list' %}" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="card" style="max-width:680px;">
+  <div class="card-header"><span class="card-title">Register New System User</span></div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">First Name *</label>{{ form.first_name }}</div>
+        <div class="form-group"><label class="form-label">Last Name *</label>{{ form.last_name }}</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Username *</label>{{ form.username }}</div>
+        <div class="form-group"><label class="form-label">Email</label>{{ form.email }}</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Role *</label>{{ form.role }}</div>
+        <div class="form-group"><label class="form-label">Position / Designation</label>{{ form.position }}</div>
+      </div>
+      <div class="form-group"><label class="form-label">Contact Number</label>{{ form.contact_number }}</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Password *</label>{{ form.password1 }}</div>
+        <div class="form-group"><label class="form-label">Confirm Password *</label>{{ form.password2 }}</div>
+      </div>
+      {% if form.errors %}
+      <div class="alert alert-error">
+        <i class="fas fa-circle-xmark"></i>
+        Please fix the errors below:
+        {% for field in form %}{% for err in field.errors %}<div>{{ field.label }}: {{ err }}</div>{% endfor %}{% endfor %}
+        {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+      </div>
+      {% endif %}
+      <div class="d-flex gap-12" style="justify-content:flex-end;">
+        <a href="{% url 'user_list' %}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Register User</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

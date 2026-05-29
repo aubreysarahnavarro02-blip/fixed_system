@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}Sessions — Brgy. San Jose{% endblock %}
+{% block page_title %}Sessions{% endblock %}
+
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding: 14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <input type="text" name="q" value="{{ q }}" class="form-control" style="max-width:220px;" placeholder="Search sessions...">
+      <select name="type" class="form-control" style="max-width:180px;">
+        <option value="">All Types</option>
+        {% for val, label in page_obj.object_list.0.SESSION_TYPE_CHOICES|default:"" %}
+        <option value="{{ val }}" {% if session_type == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+        <option value="regular" {% if session_type == 'regular' %}selected{% endif %}>Regular</option>
+        <option value="special" {% if session_type == 'special' %}selected{% endif %}>Special</option>
+        <option value="emergency" {% if session_type == 'emergency' %}selected{% endif %}>Emergency</option>
+        <option value="committee" {% if session_type == 'committee' %}selected{% endif %}>Committee</option>
+        <option value="assembly" {% if session_type == 'assembly' %}selected{% endif %}>Assembly</option>
+        <option value="seminar" {% if session_type == 'seminar' %}selected{% endif %}>Seminar</option>
+      </select>
+      <select name="status" class="form-control" style="max-width:160px;">
+        <option value="">All Status</option>
+        <option value="scheduled" {% if status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+        <option value="ongoing" {% if status == 'ongoing' %}selected{% endif %}>Ongoing</option>
+        <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+        <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+      </select>
+      <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filter</button>
+      <a href="{% url 'session_list' %}" class="btn btn-outline">Clear</a>
+      {% if request.user.profile.role in 'admin,secretary,kagawad,staff' %}
+      <a href="{% url 'session_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-plus"></i> New Session</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Date & Time</th>
+          <th>Hall</th>
+          <th>Status</th>
+          <th>Attendance</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for session in page_obj %}
+        <tr>
+          <td class="text-muted" style="font-size:12px;">{{ forloop.counter }}</td>
+          <td>
+            <a href="{% url 'session_detail' session.pk %}" style="color:#0b1f3a; font-weight:500; text-decoration:none;">
+              {{ session.title }}
+            </a>
+            {% if session.presided_by %}
+            <div style="font-size:11.5px; color:#9aa3b5;">Presided by: {{ session.presided_by }}</div>
+            {% endif %}
+          </td>
+          <td><span style="font-size:12.5px;">{{ session.get_session_type_display }}</span></td>
+          <td>
+            <div style="font-weight:500; font-size:13px;">{{ session.date|date:"M d, Y" }}</div>
+            <div style="font-size:11.5px; color:#9aa3b5;">{{ session.start_time|time:"g:i A" }}{% if session.end_time %} – {{ session.end_time|time:"g:i A" }}{% endif %}</div>
+          </td>
+          <td class="text-muted">{{ session.hall.name|default:"—" }}</td>
+          <td><span class="badge badge-{{ session.status }}">{{ session.get_status_display }}</span></td>
+          <td>
+            <span style="font-weight:600; color:#0b1f3a;">{{ session.attendance_count }}</span>
+            <span class="text-muted" style="font-size:11.5px;"> present</span>
+          </td>
+          <td>
+            <div class="d-flex gap-8">
+              <a href="{% url 'session_detail' session.pk %}" class="btn btn-outline btn-xs"><i class="fas fa-eye"></i></a>
+              {% if request.user.profile.role in 'admin,secretary,kagawad,staff' %}
+              <a href="{% url 'mark_attendance' session.pk %}" class="btn btn-primary btn-xs"><i class="fas fa-check-square"></i></a>
+              <a href="{% url 'session_edit' session.pk %}" class="btn btn-outline btn-xs"><i class="fas fa-pen"></i></a>
+              {% endif %}
+              {% if request.user.profile.role in 'admin,secretary' %}
+              <a href="{% url 'session_delete' session.pk %}" class="btn btn-danger btn-xs"><i class="fas fa-trash"></i></a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center; padding:32px; color:#9aa3b5;">
+            <i class="fas fa-landmark" style="font-size:28px; display:block; margin-bottom:8px;"></i>
+            No sessions found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&type={{ session_type }}&status={{ status }}" class="page-link">‹</a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <a href="?page={{ num }}&q={{ q }}&type={{ session_type }}&status={{ status }}"
+       class="page-link {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&type={{ session_type }}&status={{ status }}" class="page-link">›</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

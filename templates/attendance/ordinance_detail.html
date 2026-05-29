@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}{{ ord_obj.number }} — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}{{ ord_obj.get_type_display }} No. {{ ord_obj.number }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:820px; margin:0 auto;">
+  <div class="card-header">
+    <span class="card-title">{{ ord_obj.title }}</span>
+    <span class="badge-status {% if ord_obj.status == 'enacted' %}status-completed{% elif ord_obj.status == 'approved' %}status-ongoing{% elif ord_obj.status == 'rejected' %}status-cancelled{% else %}status-scheduled{% endif %}">
+      {{ ord_obj.get_status_display }}
+    </span>
+  </div>
+  <div class="card-body">
+    <table style="width:100%; font-size:13px; margin-bottom:20px;">
+      <tr><td style="width:160px; color:#888; padding:5px 0;">Number</td><td><strong>{{ ord_obj.number }}</strong></td></tr>
+      <tr><td style="color:#888; padding:5px 0;">Type</td><td>{{ ord_obj.get_type_display }}</td></tr>
+      <tr><td style="color:#888; padding:5px 0;">Committee</td><td>{{ ord_obj.committee|default:"—" }}</td></tr>
+      <tr><td style="color:#888; padding:5px 0;">Drafted By</td><td>{{ ord_obj.drafted_by.get_full_name|default:"—" }}</td></tr>
+      <tr><td style="color:#888; padding:5px 0;">Date Filed</td><td>{{ ord_obj.date_filed|date:"F d, Y" }}</td></tr>
+      {% if ord_obj.approved_by %}<tr><td style="color:#888; padding:5px 0;">Approved By</td><td>{{ ord_obj.approved_by.get_full_name }}</td></tr>{% endif %}
+      {% if ord_obj.approval_date %}<tr><td style="color:#888; padding:5px 0;">Approval Date</td><td>{{ ord_obj.approval_date|date:"F d, Y" }}</td></tr>{% endif %}
+      {% if ord_obj.date_enacted %}<tr><td style="color:#888; padding:5px 0;">Date Enacted</td><td>{{ ord_obj.date_enacted|date:"F d, Y" }}</td></tr>{% endif %}
+    </table>
+    <div style="background:#f9fafb; border:1px solid #eef0f4; border-radius:8px; padding:20px; white-space:pre-wrap; font-size:13px; line-height:1.7;">{{ ord_obj.content }}</div>
+    {% if ord_obj.approval_notes %}
+    <div style="margin-top:16px; padding:12px 16px; background:#fff3cd; border-radius:8px; font-size:13px;">
+      <strong>Captain's Notes:</strong> {{ ord_obj.approval_notes }}
+    </div>
+    {% endif %}
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      {% if user.profile.role in 'punong_barangay,admin' and ord_obj.status in 'pending_approval,draft,approved' %}
+      <a href="{% url 'ordinance_approve' ord_obj.pk %}" class="btn btn-gold"><i class="fas fa-stamp"></i> Review / Approve</a>
+      {% endif %}
+      <a href="{% url 'ordinance_list' %}" class="btn btn-outline">← Back</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

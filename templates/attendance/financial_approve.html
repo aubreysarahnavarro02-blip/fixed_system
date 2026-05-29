@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Approve Transaction — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Review Financial Transaction{% endblock %}
+{% block content %}
+<div class="card" style="max-width:680px; margin:0 auto;">
+  <div class="card-header"><span class="card-title"><i class="fas fa-stamp"></i> Financial Review</span></div>
+  <div class="card-body">
+    <table style="width:100%; font-size:14px; margin-bottom:24px;">
+      <tr><td style="width:160px; color:#888; padding:7px 0;">Type</td><td><span style="font-weight:600; color:{% if record.type == 'revenue' %}#10b981{% else %}#ef4444{% endif %};">{{ record.get_type_display }}</span></td></tr>
+      <tr><td style="color:#888; padding:7px 0;">Description</td><td>{{ record.description }}</td></tr>
+      <tr><td style="color:#888; padding:7px 0;">Amount</td><td><strong style="font-size:18px;">₱{{ record.amount|floatformat:2 }}</strong></td></tr>
+      <tr><td style="color:#888; padding:7px 0;">Fund</td><td>{{ record.get_fund_display }}</td></tr>
+      <tr><td style="color:#888; padding:7px 0;">OR Number</td><td>{{ record.or_number|default:"—" }}</td></tr>
+      <tr><td style="color:#888; padding:7px 0;">Payee</td><td>{{ record.payee|default:"—" }}</td></tr>
+      <tr><td style="color:#888; padding:7px 0;">Date</td><td>{{ record.transaction_date|date:"F d, Y" }}</td></tr>
+      <tr><td style="color:#888; padding:7px 0;">Recorded By</td><td>{{ record.recorded_by.get_full_name }}</td></tr>
+    </table>
+    <form method="post">
+      {% csrf_token %}
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button name="action" value="approve" class="btn btn-gold"><i class="fas fa-check"></i> Approve</button>
+        <button name="action" value="disburse" class="btn btn-primary"><i class="fas fa-money-bill"></i> Mark Disbursed</button>
+        <button name="action" value="reject" class="btn" style="background:#ef4444; color:white;"><i class="fas fa-times"></i> Reject</button>
+        <a href="{% url 'financial_list' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

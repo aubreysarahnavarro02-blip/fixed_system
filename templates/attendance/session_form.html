@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} — Brgy. San Jose{% endblock %}
+{% block page_title %}{{ action }} Session{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-12 mb-16">
+  <a href="{% url 'session_list' %}" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="card" style="max-width: 760px;">
+  <div class="card-header">
+    <span class="card-title">{{ action }} Session</span>
+  </div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Session Title *</label>
+          {{ form.title }}
+          {% if form.title.errors %}<div style="color:#e74c3c; font-size:12px;">{{ form.title.errors }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Session Type *</label>
+          {{ form.session_type }}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          {{ form.date }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hall / Venue</label>
+          {{ form.hall }}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Start Time *</label>
+          {{ form.start_time }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Time</label>
+          {{ form.end_time }}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          {{ form.status }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Presided By</label>
+          {{ form.presided_by }}
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        {{ form.description }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Agenda</label>
+        {{ form.agenda }}
+      </div>
+      {% if form.non_field_errors %}
+      <div class="alert alert-error">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="d-flex gap-12" style="justify-content:flex-end;">
+        <a href="{% url 'session_list' %}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> {{ action }} Session</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

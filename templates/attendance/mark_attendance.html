@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Mark Attendance — {{ session.title }}{% endblock %}
+{% block page_title %}Mark Attendance{% endblock %}
+
+{% block extra_css %}
+<style>
+  .attendance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; }
+  .citizen-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border: 2px solid #eef0f4;
+    border-radius: 8px;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+    background: white;
+  }
+  .citizen-card:hover { border-color: #dde1ea; background: #fafbfc; }
+  .citizen-card.marked-present { border-color: #2ecc71; background: #f0fdf4; }
+  .citizen-card.marked-late { border-color: #f39c12; background: #fffbeb; }
+  .citizen-card.marked-absent { border-color: #e74c3c; background: #fff5f5; }
+  .citizen-card.marked-excused { border-color: #3498db; background: #eff8ff; }
+  .citizen-name { font-weight: 500; font-size: 13.5px; }
+  .citizen-cat { font-size: 11.5px; color: #9aa3b5; }
+  .status-select { margin-left: auto; }
+  .already-marked-badge {
+    font-size: 10px;
+    background: #fef3cd;
+    color: #856404;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+  }
+  .bulk-bar {
+    display: flex; align-items: center; gap: 12px;
+    background: #0b1f3a; color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-12 align-center mb-16" style="flex-wrap:wrap;">
+  <a href="{% url 'session_detail' session.pk %}" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back to Session</a>
+  <h3 style="font-family: 'Playfair Display', serif; font-size: 17px; color: #0b1f3a;">
+    {{ session.title }} — {{ session.date|date:"F d, Y" }}
+  </h3>
+  <span class="badge badge-{{ session.status }}">{{ session.get_status_display }}</span>
+</div>
+
+<form method="post" id="attendanceForm">
+  {% csrf_token %}
+
+  <div class="bulk-bar">
+    <i class="fas fa-bolt"></i>
+    <strong>Bulk Mark:</strong>
+    <select id="bulkStatusSelect" class="form-control" style="max-width:180px; background:white; color:#0b1f3a;">
+      <option value="present">All Present</option>
+      <option value="absent">All Absent</option>
+      <option value="excused">All Excused</option>
+    </select>
+    <button type="button" class="btn btn-gold btn-sm" onclick="bulkMark()">
+      <i class="fas fa-check-double"></i> Apply to All
+    </button>
+    <span class="text-muted" style="margin-left:auto; font-size:12px; color:rgba(255,255,255,0.5);">
+      {{ citizen_data|length }} citizens
+    </span>
+  </div>
+
+  <div class="card mb-16">
+    <div class="card-body">
+      <div class="attendance-grid" id="citizenGrid">
+        {% for item in citizen_data %}
+        <div class="citizen-card" id="card_{{ item.citizen.pk }}" onclick="cycleStatus({{ item.citizen.pk }})">
+          <div style="width:36px; height:36px; background: linear-gradient(135deg, #0b1f3a, #1a3560); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:600; font-size:14px; flex-shrink:0;">
+            {{ item.citizen.first_name.0 }}{{ item.citizen.last_name.0 }}
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div class="citizen-name">
+              {{ item.citizen.full_name }}
+              {% if item.already_marked %}<span class="already-marked-badge">★ Previously Marked</span>{% endif %}
+            </div>
+            <div class="citizen-cat">{{ item.citizen.get_category_display }}</div>
+          </div>
+          <select name="status_{{ item.citizen.pk }}" class="form-control form-control-sm status-select"
+                  style="max-width:110px;" id="select_{{ item.citizen.pk }}"
+                  onchange="updateCardStyle({{ item.citizen.pk }}, this.value); event.stopPropagation();">
+            <option value="present" {% if item.record and item.record.status == 'present' %}selected{% endif %}>Present</option>
+            <option value="late" {% if item.record and item.record.status == 'late' %}selected{% endif %}>Late</option>
+            <option value="absent" {% if not item.record or item.record.status == 'absent' %}selected{% endif %}>Absent</option>
+            <option value="excused" {% if item.record and item.record.status == 'excused' %}selected{% endif %}>Excused</option>
+          </select>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; justify-content:flex-end; gap:12px;">
+    <a href="{% url 'session_detail' session.pk %}" class="btn btn-outline">Cancel</a>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-save"></i> Save Attendance ({{ citizen_data|length }} citizens)
+    </button>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const statusOrder = ['present', 'late', 'absent', 'excused'];
+
+function updateCardStyle(id, status) {
+  const card = document.getElementById('card_' + id);
+  card.className = 'citizen-card marked-' + status;
+}
+
+function cycleStatus(id) {
+  const sel = document.getElementById('select_' + id);
+  const cur = statusOrder.indexOf(sel.value);
+  sel.value = statusOrder[(cur + 1) % statusOrder.length];
+  updateCardStyle(id, sel.value);
+}
+
+function bulkMark() {
+  const status = document.getElementById('bulkStatusSelect').value;
+  document.querySelectorAll('[id^="select_"]').forEach(sel => {
+    sel.value = status;
+    const id = sel.id.replace('select_', '');
+    updateCardStyle(id, status);
+  });
+}
+
+// Init card styles on load
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[id^="select_"]').forEach(sel => {
+    const id = sel.id.replace('select_', '');
+    updateCardStyle(id, sel.value);
+  });
+});
+</script>
+{% endblock %}

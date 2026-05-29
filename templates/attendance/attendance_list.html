@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Attendance Records — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Attendance Records{% endblock %}
+
+{% block extra_css %}
+<style>
+  .filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding: 14px 20px; border-bottom: 1px solid #eef0f4; }
+  .filter-row input, .filter-row select {
+    padding: 7px 11px; border: 1.5px solid #e0e5ef; border-radius: 7px;
+    font-size: 13px; font-family: 'DM Sans',sans-serif; color: #1e2b3c; background: white; outline: none;
+  }
+  .filter-row input:focus, .filter-row select:focus { border-color: #1a3560; }
+  .pagination-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-top: 1px solid #eef0f4; font-size: 12.5px; color: #9aa3b5; }
+  .page-links { display: flex; gap: 4px; }
+  .pg-link { padding: 4px 10px; border: 1.5px solid #e0e5ef; border-radius: 6px; font-size: 12px; color: #1e2b3c; text-decoration: none; background: white; }
+  .pg-link:hover { border-color: #0b1f3a; background: #f8f9fb; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-clipboard-check"></i> Attendance Records
+      <span style="font-size:12px; color:#9aa3b5; font-weight:400; margin-left:8px;">{{ page_obj.paginator.count }} record(s)</span>
+    </span>
+    <a href="{% url 'session_list' %}" class="btn btn-outline btn-sm">
+      <i class="fas fa-calendar"></i> Sessions
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="filter-row">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search name or session…">
+    <select name="status">
+      <option value="">All Status</option>
+      {% for code, label in status_choices %}
+        <option value="{{ code }}" {% if status == code %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="session">
+      <option value="">All Sessions</option>
+      {% for s in sessions %}
+        <option value="{{ s.pk }}" {% if session_pk == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.title|truncatechars:35 }}</option>
+      {% endfor %}
+    </select>
+    <input type="date" name="date_from" value="{{ date_from }}" placeholder="From date">
+    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-magnifying-glass"></i> Filter</button>
+    {% if q or status or session_pk or date_from %}
+    <a href="{% url 'attendance_list' %}" class="btn btn-outline btn-sm">Clear</a>
+    {% endif %}
+  </form>
+
+  <div class="card-body" style="padding:0;">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Citizen</th>
+            <th>Session</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Time In</th>
+            <th>Time Out</th>
+            <th>Marked By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in page_obj %}
+          <tr>
+            <td>
+              <a href="{% url 'citizen_detail' r.citizen.pk %}" style="font-weight:500; color:#0b1f3a; text-decoration:none;">{{ r.citizen.full_name }}</a>
+              <div style="font-size:11.5px; color:#9aa3b5;">{{ r.citizen.get_category_display }}</div>
+            </td>
+            <td>
+              <a href="{% url 'session_detail' r.session.pk %}" style="color:#1a3560; text-decoration:none; font-size:13.5px;">{{ r.session.title|truncatechars:35 }}</a>
+            </td>
+            <td style="font-size:13px; color:#5a6478;">{{ r.session.date|date:"M d, Y" }}</td>
+            <td>
+              {% if r.status == 'present' %}<span class="badge badge-present">Present</span>
+              {% elif r.status == 'late' %}<span class="badge badge-late">Late</span>
+              {% elif r.status == 'excused' %}<span class="badge badge-excused">Excused</span>
+              {% else %}<span class="badge badge-absent">Absent</span>{% endif %}
+            </td>
+            <td style="font-size:13px; color:#5a6478;">{{ r.time_in|date:"g:i A"|default:"—" }}</td>
+            <td style="font-size:13px; color:#5a6478;">{{ r.time_out|date:"g:i A"|default:"—" }}</td>
+            <td style="font-size:12px; color:#9aa3b5;">{{ r.marked_by.get_full_name|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" style="text-align:center; color:#9aa3b5; padding:40px 0; font-size:13px;">
+              <i class="fas fa-clipboard"></i> No records found matching your filters.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-row">
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      <nav class="page-links">
+        {% if page_obj.has_previous %}
+        <a class="pg-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}&session={{ session_pk }}&date_from={{ date_from }}">‹ Prev</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <a class="pg-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}&session={{ session_pk }}&date_from={{ date_from }}">Next ›</a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Immunization Records — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Immunization & Vaccination Records{% endblock %}
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <input type="text" name="q" value="{{ q }}" class="form-control" style="max-width:250px;" placeholder="Search resident or vaccine...">
+      <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i> Search</button>
+      <a href="{% url 'immunization_list' %}" class="btn btn-outline">Clear</a>
+      <a href="{% url 'immunization_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-plus"></i> Record Immunization</a>
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Resident</th><th>Vaccine</th><th>Dose</th><th>Date Given</th><th>Next Dose</th><th>Administered By</th></tr></thead>
+      <tbody>
+        {% for i in page_obj %}
+        <tr>
+          <td style="font-weight:500;">{{ i.citizen.full_name }}</td>
+          <td>{{ i.vaccine_name }}</td>
+          <td style="font-size:12px; color:#888;">{{ i.dose|default:"—" }}</td>
+          <td style="font-size:12px;">{{ i.date_given|date:"M d, Y" }}</td>
+          <td style="font-size:12px; {% if i.next_dose_date %}color:#f59e0b; font-weight:500;{% else %}color:#888;{% endif %}">{{ i.next_dose_date|date:"M d, Y"|default:"—" }}</td>
+          <td style="font-size:12px; color:#888;">{{ i.administered_by.get_full_name|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center; padding:40px; color:#888;"><i class="fas fa-syringe"></i> No immunization records.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

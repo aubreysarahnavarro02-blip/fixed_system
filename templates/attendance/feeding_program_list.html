@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Feeding Programs — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Feeding Programs{% endblock %}
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
+    <span class="text-muted" style="font-size:14px;"><i class="fas fa-bowl-food"></i> All feeding program activities</span>
+    <a href="{% url 'feeding_program_create' %}" class="btn btn-gold"><i class="fas fa-plus"></i> Add Program</a>
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Beneficiaries</th><th>Status</th><th>Conducted By</th></tr></thead>
+      <tbody>
+        {% for p in page_obj %}
+        <tr>
+          <td style="font-weight:500;">{{ p.title }}</td>
+          <td style="font-size:12px;">{{ p.date|date:"M d, Y" }}</td>
+          <td style="font-size:12px; color:#888;">{{ p.location }}</td>
+          <td>{{ p.beneficiary_count }}</td>
+          <td><span class="badge-status {% if p.status == 'completed' %}status-completed{% elif p.status == 'ongoing' %}status-ongoing{% elif p.status == 'cancelled' %}status-cancelled{% else %}status-scheduled{% endif %}">{{ p.get_status_display }}</span></td>
+          <td style="font-size:12px; color:#888;">{{ p.conducted_by.get_full_name|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center; padding:40px; color:#888;"><i class="fas fa-bowl-food"></i> No feeding programs recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

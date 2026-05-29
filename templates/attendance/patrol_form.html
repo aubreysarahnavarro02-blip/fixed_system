@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Schedule Patrol — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Schedule Patrol{% endblock %}
+{% block content %}
+<div class="card" style="max-width:680px; margin:0 auto;">
+  <div class="card-header"><span class="card-title"><i class="fas fa-person-walking"></i> {{ action }} Patrol Schedule</span></div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Area / Location *</label>
+          <input name="area" class="form-control" required placeholder="e.g. Purok 3 – Purok 5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input name="date" type="date" class="form-control" value="{{ today }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Start Time *</label>
+          <input name="start_time" type="time" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Time *</label>
+          <input name="end_time" type="time" class="form-control" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Assign Tanod Members</label>
+        <select name="tanod_members" multiple class="form-control" style="min-height:120px;">
+          {% for t in tanods %}<option value="{{ t.pk }}">{{ t.get_full_name }}</option>{% endfor %}
+        </select>
+        <small class="text-muted">Hold Ctrl / Cmd to select multiple.</small>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea name="notes" class="form-control" rows="3" placeholder="Special instructions..."></textarea>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> Create Schedule</button>
+        <a href="{% url 'patrol_list' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

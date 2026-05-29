@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Calendar — Brgy. San Jose{% endblock %}
+{% block page_title %}Session Calendar{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.10/index.global.min.css" rel="stylesheet">
+<style>
+  .fc { font-family: 'DM Sans', sans-serif !important; font-size: 13px; }
+  .fc-toolbar-title { font-family: 'Playfair Display', serif !important; font-size: 20px !important; color: #0b1f3a !important; }
+  .fc-button-primary { background: #0b1f3a !important; border-color: #0b1f3a !important; font-size: 12px !important; }
+  .fc-button-primary:hover { background: #1a3560 !important; }
+  .fc-event { cursor: pointer; border-radius: 4px !important; font-size: 11.5px !important; padding: 2px 5px !important; }
+  .fc-day-today { background: rgba(200,169,79,0.05) !important; }
+  .fc-col-header-cell { background: #f8f9fb !important; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5a6478; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  /* Tooltip */
+  #eventTooltip {
+    position: fixed; z-index: 9999;
+    background: #0b1f3a; color: white;
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12.5px; line-height: 1.6;
+    max-width: 240px; pointer-events: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    display: none;
+  }
+  #eventTooltip::after {
+    content: ''; position: absolute;
+    top: -6px; left: 16px;
+    border: 6px solid transparent;
+    border-bottom-color: #0b1f3a;
+    border-top: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#3498db;"></div> Scheduled</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#2ecc71;"></div> Ongoing</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#95a5a6;"></div> Completed</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e74c3c;"></div> Cancelled</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f39c12;"></div> Postponed</div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div id="calendar"></div>
+  </div>
+</div>
+
+<div id="eventTooltip"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.10/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const calendarEl = document.getElementById('calendar');
+  const tooltip = document.getElementById('eventTooltip');
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,listMonth'
+    },
+    events: '/api/sessions/',
+    eventMouseEnter: function(info) {
+      const props = info.event.extendedProps;
+      tooltip.innerHTML = `
+        <strong style="font-size:13px;">${info.event.title}</strong><br>
+        <span style="color:rgba(255,255,255,0.7);">Type: ${props.session_type}</span><br>
+        <span style="color:rgba(255,255,255,0.7);">Status: ${props.status}</span><br>
+        <span style="color:#c8a94f;">Click to view details →</span>
+      `;
+      tooltip.style.display = 'block';
+    },
+    eventMouseLeave: function() {
+      tooltip.style.display = 'none';
+    },
+    eventClick: function(info) {
+      window.location.href = info.event.url;
+      info.jsEvent.preventDefault();
+    },
+    eventDidMount: function(info) {
+      info.el.title = info.event.extendedProps.session_type;
+    },
+  });
+
+  calendar.render();
+
+  document.addEventListener('mousemove', function(e) {
+    tooltip.style.left = (e.clientX + 12) + 'px';
+    tooltip.style.top = (e.clientY + 12) + 'px';
+  });
+});
+</script>
+{% endblock %}

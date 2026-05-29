@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Ordinances & Resolutions — {{ SITE_NAME }}{% endblock %}
+{% block page_title %}Ordinances & Resolutions{% endblock %}
+{% block content %}
+<div class="card mb-16">
+  <div class="card-body" style="padding:14px 20px;">
+    <form method="get" class="d-flex gap-8 align-center" style="flex-wrap:wrap;">
+      <select name="type" class="form-control" style="max-width:160px;">
+        <option value="">All Types</option>
+        {% for v,l in type_choices %}<option value="{{ v }}" {% if type_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <select name="status" class="form-control" style="max-width:180px;">
+        <option value="">All Status</option>
+        {% for v,l in status_choices %}<option value="{{ v }}" {% if status_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filter</button>
+      <a href="{% url 'ordinance_list' %}" class="btn btn-outline">Clear</a>
+      {% if user.profile.role in 'punong_barangay,admin,kagawad,sb_chairperson,secretary' %}
+      <a href="{% url 'ordinance_create' %}" class="btn btn-gold" style="margin-left:auto;"><i class="fas fa-plus"></i> Draft New</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Number</th><th>Type</th><th>Title</th><th>Committee</th><th>Status</th><th>Filed</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for o in page_obj %}
+        <tr>
+          <td><strong>{{ o.number }}</strong></td>
+          <td><span style="font-size:11px; background:#eef0f4; padding:2px 8px; border-radius:10px;">{{ o.get_type_display }}</span></td>
+          <td>{{ o.title|truncatechars:60 }}</td>
+          <td style="font-size:12px; color:#888;">{{ o.committee|default:"—" }}</td>
+          <td>
+            <span class="badge-status {% if o.status == 'enacted' %}status-completed{% elif o.status == 'approved' %}status-ongoing{% elif o.status == 'rejected' %}status-cancelled{% else %}status-scheduled{% endif %}">
+              {{ o.get_status_display }}
+            </span>
+          </td>
+          <td style="font-size:12px; color:#888;">{{ o.date_filed|date:"M d, Y" }}</td>
+          <td>
+            <a href="{% url 'ordinance_detail' o.pk %}" class="btn btn-sm btn-outline">View</a>
+            {% if user.profile.role in 'punong_barangay,admin' and o.status in 'pending_approval,draft' %}
+            <a href="{% url 'ordinance_approve' o.pk %}" class="btn btn-sm btn-gold">Review</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center; padding:40px; color:#888;"><i class="fas fa-scroll"></i> No records found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
