@@ -15,6 +15,10 @@ SECRET_KEY = os.environ.get(
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://barangay-official-attendance-and-session-lxum.onrender.com",
+]
+
 SITE_NAME = 'Barangay Official Attendance Registry'
 SITE_SHORT = 'BOAR System'
 BARANGAY_NAME = os.environ.get('BARANGAY_NAME', 'Brgy. San Jose')
@@ -123,6 +127,7 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 # ── Session ───────────────────────────────────────────────────────────────────
 SESSION_COOKIE_AGE = 28800  # 8 hours
