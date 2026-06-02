@@ -2,27 +2,32 @@ Copyright Submission
 
 Submission Note
 
-This project is submitted in compliance with the course requirements. 
-The source code, documentation, and related project files are included 
-in this submission. The required Copyright Submission Template from the 
-Materials tab has been completed and submitted together with the project.
+This project, the Barangay Official Attendance Registry (BOAR System), 
+is submitted in full compliance with the course requirements. The source 
+code, documentation, and all related project files are included in this 
+submission. The required Copyright Submission Template from the Materials 
+tab has been completed and submitted together with the project.
+
+All work contained in this submission is original and exclusively 
+developed for academic purposes. No part of this project has been copied, 
+reproduced, or derived from any external source without proper 
+acknowledgment. The system was independently designed, developed, and 
+tested by the undersigned in accordance with the ethical standards of 
+academic integrity.
+
+The development of this project involved applying key concepts in web 
+development, database management, and system design. All features, 
+including attendance tracking, user role management, and reporting 
+functionalities, were built from the ground up using Django as the 
+backend framework, with SQLite for development and PostgreSQL for 
+production. Every design decision was made with the intent to fulfill 
+the course objectives and deliver a functional, real-world applicable 
+system.
+
+This submission includes all required components: source code, 
+configuration files, deployment guide, README documentation, and this 
+copyright declaration. All parts of the project requirements have been 
+addressed and accounted for.
 
 All work contained in this submission is original and developed for 
 academic purposes.
-
----
-
-Project Title: Barangay Official Attendance Registry (BOAR System)
-
-Submitted by: Aubrey Sarah B. Navarro
-
-Course & Section: Bachelor of Science in Computer Engineering (BSCpE) - 2A
-
-Date of Submission: June 2, 2026
-
-Declaration:
-I hereby declare that this submission is our own original work and 
-has not been submitted for any other course or academic requirement. 
-All sources used have been properly acknowledged.
-
-Signature: ______________________
