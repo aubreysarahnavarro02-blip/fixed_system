@@ -152,3 +152,10 @@ barangay_official_registry/
 - **Process Manager:** systemd
 - **SSL:** Let's Encrypt / Certbot
 - **Static Files:** WhiteNoise
+
+## License
+Submission Note
+
+This project is submitted in compliance with the course requirements. The source code, documentation, and related project files are included in this submission. The required Copyright Submission Template from the Materials tab has been completed and submitted together with the project.
+
+All work contained in this submission is original and developed for academic purposes.

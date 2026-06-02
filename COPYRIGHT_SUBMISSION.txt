@@ -1,0 +1,28 @@
+Copyright Submission
+
+Submission Note
+
+This project is submitted in compliance with the course requirements. 
+The source code, documentation, and related project files are included 
+in this submission. The required Copyright Submission Template from the 
+Materials tab has been completed and submitted together with the project.
+
+All work contained in this submission is original and developed for 
+academic purposes.
+
+---
+
+Project Title: Barangay Official Attendance Registry (BOAR System)
+
+Submitted by: Aubrey Sarah B. Navarro
+
+Course & Section: Bachelor of Science in Computer Engineering (BSCpE) - 2A
+
+Date of Submission: June 2, 2026
+
+Declaration:
+I hereby declare that this submission is our own original work and 
+has not been submitted for any other course or academic requirement. 
+All sources used have been properly acknowledged.
+
+Signature: ______________________
